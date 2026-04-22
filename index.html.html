@@ -886,7 +886,7 @@ function goBack(){goTo(prevScr);}
 function filterCat(cat){aCat=cat;goTo('partenaires');setTimeout(()=>{buildCats();renderList();},50);}
 function showFiche(id){
   prevScr=document.querySelector('.scr.on').id.replace('scr-','');
-  const p=PARTNERS.find(x=>x.id===id);if(!p)return;
+  const p=(window.PARTNERS||PARTNERS).find(x=>x.id===id);if(!p)return;
   const CATS=getCats();const ZONES=getZones();const cat=CATS.find(c=>c.id===p.cat)||CATS[0];
   const zone=ZONES.find(z=>z.id===p.zone)||ZONES[0];
   window._ficheId=id;
@@ -906,7 +906,8 @@ function showFiche(id){
 function renderList(){
   buildZones();buildCats();
   const q=(document.getElementById('search')||{value:''}).value.toLowerCase().trim();
-  let f=PARTNERS.filter(p=>(aCat==='all'||p.cat===aCat)&&(aZone==='all'||p.zone===aZone)&&(!q||p.name.toLowerCase().includes(q)||p.avantage.toLowerCase().includes(q)));
+  const PARTNERS_DATA = window.PARTNERS || PARTNERS;
+  let f=PARTNERS_DATA.filter(p=>(aCat==='all'||p.cat===aCat)&&(aZone==='all'||p.zone===aZone)&&(!q||p.name.toLowerCase().includes(q)||p.avantage.toLowerCase().includes(q)));
   if(sortDist)f.sort((a,b)=>a.dist-b.dist);else f.sort((a,b)=>a.name.localeCompare(b.name));
   document.getElementById('count').textContent=t('partner_count')(f.length);
   const zm=Object.fromEntries(getZones().map(z=>[z.id,z.label]));
@@ -919,7 +920,7 @@ function renderList(){
       </div><div class="pdist">${p.dist} km</div></div></div>`).join(''):'<div class="empty">Aucun partenaire trouvé</div>';
 }
 function renderFlash(){
-  const f=PARTNERS.filter(p=>p.flash);
+  const f=(window.PARTNERS||PARTNERS).filter(p=>p.flash);
   const zm=Object.fromEntries(getZones().map(z=>[z.id,z.label]));
   document.getElementById('flash-list').innerHTML=f.length?f.map(p=>`
     <div class="fc" onclick="showFiche(${p.id})"><div class="fc-top"><div class="fbadge"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>FLASH</div><div class="ftimer">Expire dans ${p.flash.timer}</div></div>
@@ -942,7 +943,7 @@ function initCarte(){
   const map=L.map('map').setView([50.18,1.62],10);window._map=map;
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
   const ico=(flash)=>L.divIcon({className:'',html:`<div style="width:${flash?32:26}px;height:${flash?32:26}px;background:${flash?'#C0392B':'#3D2B1F'};border:2px solid #FAF6F1;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 4px rgba(0,0,0,.3)"></div>`,iconSize:[flash?32:26,flash?32:26],iconAnchor:[flash?16:13,flash?32:26],popupAnchor:[0,-30]});
-  PARTNERS.forEach(p=>{
+  (window.PARTNERS||PARTNERS).forEach(p=>{
     if(!p.coords)return;
     const popup=`<div style="font-family:sans-serif;min-width:160px;"><div style="font-weight:600;font-size:13px;color:#3D2B1F;margin-bottom:4px;">${p.name}</div>${p.flash?`<div style="background:#FDECEA;border:0.5px solid #C0392B;color:#7B1A1A;font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:4px;">FLASH · ${p.flash.titre}</div>`:''}<div style="font-size:11px;color:#8A6A50;margin-bottom:6px;">${p.avantage}</div><button onclick="showFiche(${p.id})" style="background:#3D2B1F;color:#FAF6F1;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;width:100%">Voir la fiche →</button></div>`;
     L.marker(p.coords,{icon:ico(!!p.flash)}).addTo(map).bindPopup(popup);
