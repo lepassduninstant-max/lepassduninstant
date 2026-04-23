@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Géocodage Partenaires</title>
+<style>
+body{font-family:sans-serif;max-width:700px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}
+h1{font-size:20px;}
+.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:400px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}
+button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;margin:4px;}
+button:disabled{opacity:0.5;}
+.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}
+.bar{height:8px;background:#C4A882;border-radius:4px;width:0;transition:width 0.3s;}
+.ok{color:green;} .err{color:red;} .info{color:blue;} .warn{color:orange;}
+</style>
+</head>
+<body>
+<h1>🗺️ Géocodage automatique des partenaires</h1>
+<p>Géocode chaque adresse via OpenStreetMap et met à jour Firebase.</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt. Cliquez sur Lancer.</div></div>
+<button id="btn-start" onclick="startGeocode()">▶ Lancer le géocodage</button>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",
+  authDomain: "pass-instant.firebaseapp.com",
+  projectId: "pass-instant",
+  storageBucket: "pass-instant.firebasestorage.app",
+  messagingSenderId: "234758483474",
+  appId: "1:234758483474:web:7d739963a99a7bd573f2cb"
+});
+const db = firebase.firestore();
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function bar(pct) {
+  document.getElementById('bar').style.width = pct + '%';
+}
+
+async function geocode(adresse) {
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(adresse) + '&format=json&limit=1&countrycodes=fr';
+    var r = await fetch(url, {headers: {'User-Agent': 'PassInstant/1.0'}});
+    var results = await r.json();
+    if (results && results.length > 0) {
+      return [parseFloat(results[0].lat), parseFloat(results[0].lon)];
+    }
+  } catch(e) {
+    return null;
+  }
+  return null;
+}
+
+async function startGeocode() {
+  var btn = document.getElementById('btn-start');
+  btn.disabled = true;
+  btn.textContent = 'En cours...';
+  
+  log('Chargement depuis Firebase...', 'info');
+  var snap = await db.collection('partenaires').get();
+  var docs = [];
+  snap.forEach(function(d) { docs.push({id: d.id, ...d.data()}); });
+  log(docs.length + ' partenaires chargés', 'ok');
+  
+  var ok = 0, skip = 0, err = 0;
+  
+  for (var i = 0; i < docs.length; i++) {
+    var p = docs[i];
+    var adresse = p.adresse || p.name;
+    bar(Math.round((i+1)/docs.length*100));
+    
+    log((i+1) + '/' + docs.length + ' - ' + p.name);
+    
+    var coords = await geocode(adresse);
+    
+    if (coords && coords[0] > 49.5 && coords[0] < 51.5 && coords[1] > 0.5 && coords[1] < 3.0) {
+      await db.collection('partenaires').doc(p.id).update({ coords: coords });
+      log('  ✅ ' + coords[0].toFixed(5) + ', ' + coords[1].toFixed(5), 'ok');
+      ok++;
+    } else if (coords) {
+      log('  ⚠️ Hors zone: ' + JSON.stringify(coords), 'warn');
+      skip++;
+    } else {
+      log('  ❌ Introuvable: ' + adresse, 'err');
+      err++;
+    }
+    
+    await new Promise(function(r) { setTimeout(r, 1200); });
+  }
+  
+  log('=== TERMINÉ === ✅ ' + ok + ' mis à jour, ⚠️ ' + skip + ' ignorés, ❌ ' + err + ' erreurs', 'info');
+  btn.textContent = 'Terminé !';
+}
+</script>
+</body>
+</html>
