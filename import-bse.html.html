@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Import BSE</title>
+<style>
+body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}
+.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:350px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}
+button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}
+button:disabled{opacity:0.5;}
+.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}
+.bar{height:8px;background:#C4A882;border-radius:4px;width:0;transition:width 0.3s;}
+.ok{color:green;} .err{color:red;} .info{color:blue;}
+</style>
+</head>
+<body>
+<h1>🌊 Baie de Somme Exploration — 5 adresses</h1>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",
+  authDomain: "pass-instant.firebaseapp.com",
+  projectId: "pass-instant",
+  storageBucket: "pass-instant.firebasestorage.app",
+  messagingSenderId: "234758483474",
+  appId: "1:234758483474:web:7d739963a99a7bd573f2cb"
+});
+var db = firebase.firestore();
+
+var ADRESSES = [{"adresse": "Promenade du Marquenterre, 80790 Fort-Mahon-Plage, France", "zone": "fort-mahon"}, {"adresse": "22B Chaussée Léon Blum, 80340 Cappy, France", "zone": "portes-baie"}, {"adresse": "Route Du Vieux Chene, Bois de Cise, 80460 Ault, France", "zone": "ault"}, {"adresse": "Chaussée du Cap Hornu, 80230 Saint-Valery-sur-Somme, France", "zone": "saint-valery"}, {"adresse": "65 Rue Basse de la Bouvaque, 80100 Abbeville, France", "zone": "abbeville"}];
+var ENTREES = [{"name": "Baie de Somme Exploration", "cat": "nature", "zone": "fort-mahon", "adresse": "Promenade du Marquenterre, 80790 Fort-Mahon-Plage", "tel": "", "avantage": "10% de remise sur votre session", "code": "BAIEDESOMMEE2026", "coords": [0, 0], "dist": 0, "flash": null}, {"name": "Baie de Somme Exploration", "cat": "nature", "zone": "portes-baie", "adresse": "22B Chaussée Léon Blum, 80340 Cappy", "tel": "", "avantage": "10% de remise sur votre session", "code": "BAIEDESOMMEE2026", "coords": [0, 0], "dist": 0, "flash": null}, {"name": "Baie de Somme Exploration", "cat": "nature", "zone": "ault", "adresse": "Route Du Vieux Chene, Bois de Cise, 80460 Ault", "tel": "", "avantage": "10% de remise sur votre session", "code": "BAIEDESOMMEE2026", "coords": [0, 0], "dist": 0, "flash": null}, {"name": "Baie de Somme Exploration", "cat": "nature", "zone": "saint-valery", "adresse": "Chaussée du Cap Hornu, 80230 Saint-Valery-sur-Somme", "tel": "", "avantage": "10% de remise sur votre session", "code": "BAIEDESOMMEE2026", "coords": [0, 0], "dist": 0, "flash": null}, {"name": "Baie de Somme Exploration", "cat": "nature", "zone": "abbeville", "adresse": "65 Rue Basse de la Bouvaque, 80100 Abbeville", "tel": "", "avantage": "10% de remise sur votre session", "code": "BAIEDESOMMEE2026", "coords": [0, 0], "dist": 0, "flash": null}];
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function geocode(adresse) {
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(adresse) + '&format=json&limit=1';
+    var r = await fetch(url, {headers:{'User-Agent':'PassInstant/1.0'}});
+    var res = await r.json();
+    if (res && res.length > 0) return [parseFloat(res[0].lat), parseFloat(res[0].lon)];
+  } catch(e) {}
+  return null;
+}
+
+async function lancer() {
+  var btn = document.getElementById('btn');
+  btn.disabled = true;
+  log('Géocodage et import...', 'info');
+  
+  var ok = 0;
+  for (var i = 0; i < ENTREES.length; i++) {
+    var e = ENTREES[i];
+    var a = ADRESSES[i];
+    document.getElementById('bar').style.width = Math.round((i+1)/ENTREES.length*100) + '%';
+    log((i+1) + '/' + ENTREES.length + ' - ' + e.zone);
+    
+    var coords = await geocode(a.adresse);
+    if (coords && coords[0] > 49) {
+      e.coords = coords;
+      log('  ✅ ' + coords[0].toFixed(5) + ', ' + coords[1].toFixed(5), 'ok');
+    } else {
+      log('  ⚠️ Géocodage échoué', 'err');
+    }
+    
+    await db.collection('partenaires').add(e);
+    ok++;
+    await new Promise(function(r){ setTimeout(r, 1200); });
+  }
+  
+  log('✅ ' + ok + ' entrées ajoutées !', 'ok');
+  btn.textContent = 'Terminé !';
+}
+</script>
+</body>
+</html>
