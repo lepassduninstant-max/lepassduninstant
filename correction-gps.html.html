@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Correction GPS</title>
+<style>
+body{font-family:sans-serif;max-width:700px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}
+h1{font-size:20px;}
+.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:400px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}
+button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}
+button:disabled{opacity:0.5;}
+.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}
+.bar{height:8px;background:#C4A882;border-radius:4px;width:0;transition:width 0.3s;}
+.ok{color:green;} .err{color:red;} .info{color:blue;} .warn{color:orange;}
+</style>
+</head>
+<body>
+<h1>🗺️ Correction GPS des adresses</h1>
+<p>26 partenaires à corriger</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt. Cliquez sur Lancer.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer la correction</button>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",
+  authDomain: "pass-instant.firebaseapp.com",
+  projectId: "pass-instant",
+  storageBucket: "pass-instant.firebasestorage.app",
+  messagingSenderId: "234758483474",
+  appId: "1:234758483474:web:7d739963a99a7bd573f2cb"
+});
+var db = firebase.firestore();
+
+var CORRECTIONS = [{"name": "La Guinguette de Petit Port", "adresse": "2 Rue Principale, 80230 Saigneville, France"}, {"name": "Norwoé Découvertes", "adresse": "Terrasse Marcel Vasseur, 80120 Quend, France"}, {"name": "Les Clapes de La Mollière", "adresse": "622 Rue Faidherbe, 80410 Cayeux-sur-Mer, France"}, {"name": "Le Kota Grill Finlandais", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "La Télécabine Megève", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Le Chalet Kota", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Head Spa Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Massage au Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Espace Bien-Être Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Le Repaire Vintage", "adresse": "270 Chemin Guillaume Obry, 80410 Cayeux-sur-Mer, France"}, {"name": "Jard'in Baie 80", "adresse": "34 Rue du Château d'Eau, 80132 Miannay, France"}, {"name": "ABC Informatique", "adresse": "57 Place Max Lejeune, 80100 Abbeville, France"}, {"name": "Sophro Balade avec Comme une Plume", "adresse": "1 Rue du Château, 80550 Le Crotoy, France"}, {"name": "Le Temps du Sucre", "adresse": "18 Rue de Menchecourt, 80100 Abbeville, France"}, {"name": "La Belle Etoile", "adresse": "11 Place Georges Clemenceau, 80410 Cayeux-sur-Mer, France"}, {"name": "Taxi Delahaye", "adresse": "20 Rue d'Herlicourt, 80230 Lanchères, France"}, {"name": "Ludair ULM", "adresse": "Aérodrome d'Abbeville, 80100 Abbeville, France"}, {"name": "Pinasses de la Baie", "adresse": "Avenue du Général Leclerc, 80230 Saint-Valery-sur-Somme, France"}, {"name": "Comme une Plume", "adresse": "1 Chemin des Matelots, 80120 Saint-Quentin-en-Tourmont, France"}, {"name": "Happy Park Crécy", "adresse": "Forêt de Crécy-en-Ponthieu, 80150 Crécy-en-Ponthieu, France"}, {"name": "Char à Voile Sensation Large", "adresse": "Base Eric Tabarly, 80460 Ault, France"}, {"name": "Stage Catamaran Sensation Large", "adresse": "Base Eric Tabarly, 80460 Ault, France"}, {"name": "Ma Zen Attitude en Baie", "adresse": "10 Avenue des Pins, 80120 Quend, France"}, {"name": "La Baie les Gaufres", "adresse": "1 Avenue du Général Leclerc, 80230 Saint-Valery-sur-Somme, France"}, {"name": "Tuk-Tour Valéricain", "adresse": "Place Guillaume le Conquérant, 80230 Saint-Valery-sur-Somme, France"}, {"name": "Revisiter", "adresse": "Place des Pilotes, 80230 Saint-Valery-sur-Somme, France"}];
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function geocode(adresse) {
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(adresse) + '&format=json&limit=1';
+    var r = await fetch(url, {headers:{'User-Agent':'PassInstant/1.0'}});
+    var res = await r.json();
+    if (res && res.length > 0) return [parseFloat(res[0].lat), parseFloat(res[0].lon)];
+  } catch(e) {}
+  return null;
+}
+
+async function lancer() {
+  var btn = document.getElementById('btn');
+  btn.disabled = true;
+  
+  // Charger tous les partenaires de Firebase
+  log('Chargement depuis Firebase...', 'info');
+  var snap = await db.collection('partenaires').get();
+  var docs = {};
+  snap.forEach(function(d) {
+    var data = d.data();
+    docs[data.name] = d.id;
+  });
+  log(Object.keys(docs).length + ' partenaires chargés', 'ok');
+  
+  var ok = 0, err = 0;
+  
+  for (var i = 0; i < CORRECTIONS.length; i++) {
+    var c = CORRECTIONS[i];
+    document.getElementById('bar').style.width = Math.round((i+1)/CORRECTIONS.length*100) + '%';
+    log((i+1) + '/' + CORRECTIONS.length + ' - ' + c.name);
+    
+    var coords = await geocode(c.adresse);
+    
+    if (coords && coords[0] > 49 && coords[0] < 52) {
+      // Trouver le doc Firebase par nom
+      var docId = docs[c.name];
+      if (docId) {
+        await db.collection('partenaires').doc(docId).update({ coords: coords });
+        log('  ✅ ' + coords[0].toFixed(5) + ', ' + coords[1].toFixed(5), 'ok');
+        ok++;
+      } else {
+        log('  ⚠️ Partenaire non trouvé dans Firebase: ' + c.name, 'warn');
+      }
+    } else {
+      log('  ❌ Géocodage échoué pour: ' + c.adresse, 'err');
+      err++;
+    }
+    
+    await new Promise(function(r) { setTimeout(r, 1200); });
+  }
+  
+  log('=== TERMINÉ === ✅ ' + ok + ' corrigés, ❌ ' + err + ' erreurs', 'info');
+  btn.textContent = 'Terminé !';
+}
+</script>
+</body>
+</html>
