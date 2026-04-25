@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Correction Zone Cabine</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:200px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}.ok{color:green;}.err{color:red;}.info{color:blue;}</style>
+</head>
+<body>
+<h1>🔧 Correction zone La Cabine Mystère by Locked</h1>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Corriger</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function lancer(){
+  document.getElementById('btn').disabled=true;
+  log('Chargement...','info');
+  var snap=await db.collection('partenaires').get();
+  snap.forEach(async function(d){
+    var name=d.data().name;
+    if(name==='La Cabine Mystère by Locked'){
+      await db.collection('partenaires').doc(d.id).update({zone:'cayeux', coords:[50.18234, 1.49456]});
+      log('✅ '+name+' → zone cayeux','ok');
+    }
+  });
+  setTimeout(function(){log('Terminé !','info');document.getElementById('btn').textContent='Terminé !'},2000);
+}
+</script></body></html>
