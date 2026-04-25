@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Correction Moulin</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:200px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.err{color:red;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>⚙️ Correction Moulin du Petit Marais</h1>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Corriger</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function geocode(adresse){try{var r=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(adresse)+'&format=json&limit=1',{headers:{'User-Agent':'PassInstant/1.0'}});var res=await r.json();if(res&&res.length>0)return[parseFloat(res[0].lat),parseFloat(res[0].lon)];}catch(e){}return null;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Géocodage...','info');
+  var coords=await geocode('14 Rue d Aigneville, 80220 Maisnieres, France');
+  if(!coords||coords[0]<49){coords=[50.05234,1.74567];log('⚠️ Coords approx Maisnières','warn');}
+  else{log('✅ Coords: '+coords[0].toFixed(5)+', '+coords[1].toFixed(5),'ok');}
+  await new Promise(function(r){setTimeout(r,1200);});
+  var snap=await db.collection('partenaires').get();
+  var ok=0;
+  snap.forEach(async function(d){
+    var name=d.data().name;
+    if(name==='Snack Bar du Moulin du Petit Marais'||name==='Le Moulin du Petit Marais (pêche)'){
+      await db.collection('partenaires').doc(d.id).update({coords:coords,adresse:'14 Rue d\'Aigneville, 80220 Maisnières'});
+      log('✅ '+name,'ok');ok++;
+    }
+  });
+  setTimeout(function(){log('✅ '+ok+' corrigés !','ok');btn.textContent='Terminé !';},2000);
+}
+</script></body></html>
