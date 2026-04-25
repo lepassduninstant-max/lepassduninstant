@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Import Filles + Revisiter</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.err{color:red;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>🐞 Les Filles et leur coccinelle — 2 adresses</h1>
+<p>Corrige Saint-Valery + ajoute Le Crotoy</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function geocode(adresse){try{var r=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(adresse)+'&format=json&limit=1',{headers:{'User-Agent':'PassInstant/1.0'}});var res=await r.json();if(res&&res.length>0)return[parseFloat(res[0].lat),parseFloat(res[0].lon)];}catch(e){}return null;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  
+  // 1. Corriger Saint-Valery
+  log('Géocodage Saint-Valery...','info');
+  var coordsSV=await geocode('4 Rue Jules Brûle, 80230 Saint-Valery-sur-Somme, France');
+  if(!coordsSV||coordsSV[0]<49){coordsSV=[50.18498,1.63389];log('⚠️ Coords approx SV','warn');}
+  else log('✅ Saint-Valery: '+coordsSV[0].toFixed(5)+', '+coordsSV[1].toFixed(5),'ok');
+  document.getElementById('bar').style.width='25%';
+  await new Promise(function(r){setTimeout(r,1200);});
+  
+  // 2. Géocoder Le Crotoy
+  log('Géocodage Le Crotoy...','info');
+  var coordsCR=await geocode('7 Rue Victor Petit, 80550 Le Crotoy, France');
+  if(!coordsCR||coordsCR[0]<49){coordsCR=[50.21523,1.62712];log('⚠️ Coords approx Crotoy','warn');}
+  else log('✅ Le Crotoy: '+coordsCR[0].toFixed(5)+', '+coordsCR[1].toFixed(5),'ok');
+  document.getElementById('bar').style.width='50%';
+  await new Promise(function(r){setTimeout(r,1200);});
+  
+  // 3. Mettre à jour Saint-Valery dans Firebase
+  log('Mise à jour Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  snap.forEach(async function(d){
+    if(d.data().name==='Les Filles et leur coccinelle' && d.data().zone==='saint-valery'){
+      await db.collection('partenaires').doc(d.id).update({coords:coordsSV, adresse:'4 Rue Jules Brûle, 80230 Saint-Valery-sur-Somme'});
+      log('✅ Saint-Valery mis à jour','ok');
+    }
+  });
+  document.getElementById('bar').style.width='75%';
+  await new Promise(function(r){setTimeout(r,1000);});
+  
+  // 4. Ajouter Le Crotoy
+  await db.collection('partenaires').add({
+    name:'Les Filles et leur coccinelle',
+    cat:'commerces',
+    zone:'crotoy',
+    adresse:'7 Rue Victor Petit, 80550 Le Crotoy',
+    tel:'',
+    avantage:'10% de remise sur tout le magasin',
+    code:'LESFILLESETL2026',
+    coords:coordsCR,
+    dist:0,
+    flash:null
+  });
+  log('✅ Le Crotoy ajouté','ok');
+  document.getElementById('bar').style.width='100%';
+  log('=== TERMINÉ ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
