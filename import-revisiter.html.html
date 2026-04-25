@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Import Revisiter</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.err{color:red;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>☕ Revisiter — 6 adresses</h1>
+<p>Met à jour Saint-Valery principal + ajoute les 5 autres</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var ADRESSES=[{"adresse": "Place des Pilotes, 80230 Saint-Valery-sur-Somme, France", "zone": "saint-valery"}, {"adresse": "46 Quai du Romerel, 80230 Saint-Valery-sur-Somme, France", "zone": "saint-valery"}, {"adresse": "345 Route d'Eu, 80230 Saint-Valery-sur-Somme, France", "zone": "saint-valery"}, {"adresse": "16 Rue de Saint-Valery, 80460 Ault, France", "zone": "ault"}, {"adresse": "1 Grande Rue, 80460 Ault, France", "zone": "ault"}, {"adresse": "16 Rue des Corderies, 80410 Cayeux-sur-Mer, France", "zone": "cayeux"}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function geocode(adresse){try{var r=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(adresse)+'&format=json&limit=1',{headers:{'User-Agent':'PassInstant/1.0'}});var res=await r.json();if(res&&res.length>0)return[parseFloat(res[0].lat),parseFloat(res[0].lon)];}catch(e){}return null;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var revisiterId=null;
+  snap.forEach(function(d){if(d.data().name==='Revisiter')revisiterId=d.id;});
+  
+  var ok=0;
+  for(var i=0;i<ADRESSES.length;i++){
+    var a=ADRESSES[i];
+    document.getElementById('bar').style.width=Math.round((i+1)/ADRESSES.length*100)+'%';
+    log((i+1)+'/'+ADRESSES.length+' - '+a.adresse.substring(0,40));
+    var coords=await geocode(a.adresse);
+    if(!coords||coords[0]<49){
+      log('  ⚠️ Géocodage échoué - coords approx','warn');
+      coords=a.zone==='saint-valery'?[50.18723,1.63967]:a.zone==='ault'?[50.10167,1.44567]:[50.18456,1.49234];
+    }else{log('  ✅ '+coords[0].toFixed(5)+', '+coords[1].toFixed(5),'ok');}
+    
+    if(i===0&&revisiterId){
+      // Mettre à jour l'entrée existante
+      await db.collection('partenaires').doc(revisiterId).update({coords:coords,adresse:a.adresse.replace(', France',''),zone:a.zone});
+      log('  → Entrée existante mise à jour','ok');
+    }else{
+      // Ajouter nouvelle entrée
+      await db.collection('partenaires').add({
+        name:'Revisiter',cat:'restauration',zone:a.zone,
+        adresse:a.adresse.replace(', France',''),tel:'',
+        avantage:'Un cafe offert',code:'REVISITER2026',
+        coords:coords,dist:0,flash:null
+      });
+      log('  → Nouvelle entrée ajoutée','ok');
+    }
+    ok++;
+    await new Promise(function(r){setTimeout(r,1200);});
+  }
+  log('✅ '+ok+' entrées traitées !','ok');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
