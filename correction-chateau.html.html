@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Correction Château + BSE</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.err{color:red;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>🏰 Correction Château des Lumières — 9 activités</h1>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var CORRECTIONS=[{"name": "Le Kota Grill Finlandais", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "La Télécabine Megève", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Le Chalet Kota", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Head Spa Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Massage au Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Espace Bien-Être Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Massage Château des Lumières", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Snack Bar du Moulin du Petit Marais", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}, {"name": "Le Moulin du Petit Marais (pêche)", "adresse": "29 Rue du Moulin, 80960 Saint-Blimont, France"}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function geocode(adresse){try{var r=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(adresse)+'&format=json&limit=1',{headers:{'User-Agent':'PassInstant/1.0'}});var res=await r.json();if(res&&res.length>0)return[parseFloat(res[0].lat),parseFloat(res[0].lon)];}catch(e){}return null;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Géocodage 29 Rue du Moulin Saint-Blimont...','info');
+  var coords=await geocode('29 Rue du Moulin, 80960 Saint-Blimont, France');
+  if(!coords||coords[0]<49){coords=[50.08234,1.67890];log('⚠️ Géocodage approx','warn');}
+  else{log('✅ Coords: '+coords[0].toFixed(5)+', '+coords[1].toFixed(5),'ok');}
+  await new Promise(function(r){setTimeout(r,1200);});
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs={};snap.forEach(function(d){docs[d.data().name]=d.id;});
+  log(Object.keys(docs).length+' partenaires','ok');
+  var ok=0;
+  for(var i=0;i<CORRECTIONS.length;i++){
+    var c=CORRECTIONS[i];
+    document.getElementById('bar').style.width=Math.round((i+1)/CORRECTIONS.length*100)+'%';
+    var docId=docs[c.name];
+    if(docId){
+      await db.collection('partenaires').doc(docId).update({coords:coords});
+      log('✅ '+c.name,'ok');ok++;
+    }else{log('⚠️ Non trouvé: '+c.name,'warn');}
+    await new Promise(function(r){setTimeout(r,300);});
+  }
+  log('✅ '+ok+' corrigés !','ok');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
