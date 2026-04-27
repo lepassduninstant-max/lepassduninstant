@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Supprimer Escap'Ânes Ault</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#C0392B;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>🗑️ Supprimer Escap'Ânes — Rue Ernest Jamart, Ault</h1>
+<p>Affiche toutes les entrées Escap'Ânes pour confirmer la suppression.</p>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Afficher et supprimer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.innerHTML=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function supprimer(id,info){
+  if(!confirm('Supprimer: '+info+'?'))return;
+  await db.collection('partenaires').doc(id).delete();
+  log('🗑️ Supprimé: '+info,'ok');
+}
+async function lancer(){
+  document.getElementById('btn').disabled=true;
+  var snap=await db.collection('partenaires').get();
+  var count=0;
+  snap.forEach(function(d){
+    var p=d.data();
+    if(p.name&&p.name.toLowerCase().includes("escap")){
+      var adresse=p.adresse||'';
+      var coords=p.coords?'['+p.coords[0].toFixed(4)+', '+p.coords[1].toFixed(4)+']':'';
+      var isJamart=adresse.toLowerCase().includes('jamart');
+      var info=p.zone+' | '+adresse+' | '+coords;
+      log((++count)+'. '+info+(isJamart?' ← JAMART':'')+' | <button onclick="supprimer(\''+d.id+'\',\''+p.zone+'\')">🗑️ Supprimer</button>','');
+    }
+  });
+  if(count===0)log('Aucune entrée Escap trouvée','warn');
+}
+</script></body></html>
