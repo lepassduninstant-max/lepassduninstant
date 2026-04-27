@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Correction Escap'Ânes</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:350px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.err{color:red;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>🐴 Correction Escap'Ânes — Hourdel + Ault</h1>
+<p>Affiche toutes les entrées pour sélectionner les bonnes à corriger.</p>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Afficher et corriger</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.innerHTML=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+
+async function corriger(id, lat, lng, label){
+  await db.collection('partenaires').doc(id).update({coords:[lat,lng]});
+  log('✅ Corrigé '+label+': ['+lat+', '+lng+']','ok');
+}
+
+async function lancer(){
+  document.getElementById('btn').disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var entries=[];
+  snap.forEach(function(d){
+    var p=d.data();
+    if(p.name&&p.name.toLowerCase().includes("escap")){
+      entries.push({id:d.id, name:p.name, zone:p.zone, coords:p.coords});
+    }
+  });
+  log(entries.length+' entrées Escap trouvées:','info');
+  entries.forEach(function(e){
+    var c=e.coords||[0,0];
+    log(e.zone+' | ['+c[0]+', '+c[1]+'] | '+e.id.substring(0,8)+'...');
+  });
+  
+  // Trouver et corriger Hourdel (zone cayeux ou coords proches du Hourdel ~50.18)
+  // et Ault (zone ault ou coords proches ~50.10)
+  var hourdel=entries.find(function(e){return e.zone==='cayeux'||(e.coords&&e.coords[0]>50.17&&e.coords[0]<50.22);});
+  var ault=entries.find(function(e){return e.zone==='ault';});
+  
+  if(hourdel){
+    await corriger(hourdel.id, 50.21505, 1.56652, 'Hourdel ('+hourdel.zone+')');
+  }else log('⚠️ Entrée Hourdel non trouvée','warn');
+  
+  if(ault){
+    await corriger(ault.id, 50.089098792421034, 1.42466208349214, 'Ault');
+  }else log('⚠️ Entrée Ault non trouvée','warn');
+  
+  log('=== TERMINÉ ===','info');
+  document.getElementById('btn').textContent='Terminé !';
+}
+</script></body></html>
