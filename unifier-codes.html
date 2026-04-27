@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Unification codes partenaires</title>
+<style>body{font-family:sans-serif;max-width:700px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:400px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}.err{color:red;}</style>
+</head>
+<body>
+<h1>🔑 Unification des codes partenaires</h1>
+<p>Un seul code par établissement pour 11 groupes.</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Unifier les codes</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var UNIFICATIONS=[{"mots_cles": ["château des lumières", "kota", "télécabine", "chalet kota", "head spa", "massage au château", "espace bien-être"], "code": "CHATEAULUMIE2026"}, {"mots_cles": ["locked escape", "cabine mystère"], "code": "LOCKED2026"}, {"mots_cles": ["freetrotts"], "code": "FREETROTTS2026"}, {"mots_cles": ["réconfort", "reconfort"], "code": "AURECONFORT2026"}, {"mots_cles": ["poissonnerie du marais", "dégustation fruits de mer by jordan"], "code": "JORDANMAREE2026"}, {"mots_cles": ["atelier du vin"], "code": "LATELIERDUVIN2026"}, {"mots_cles": ["moulin du petit marais"], "code": "MOULINPETIT2026"}, {"mots_cles": ["baluchon", "sortie crevettes", "sortie pêche"], "code": "BALUCHON2026"}, {"mots_cles": ["sensation large"], "code": "SENSATIONLARGE2026"}, {"mots_cles": ["comme une plume", "sophro balade"], "code": "COMMEUNEPLUME2026"}, {"mots_cles": ["vannerie du boisle"], "code": "VANNERIEDUBOISLE2026"}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function bar(p){document.getElementById('bar').style.width=p+'%';}
+
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs=[];
+  snap.forEach(function(d){docs.push({id:d.id,...d.data()});});
+  log(docs.length+' partenaires chargés','ok');
+  
+  var total=0,ok=0;
+  
+  for(var i=0;i<UNIFICATIONS.length;i++){
+    var u=UNIFICATIONS[i];
+    bar(Math.round((i+1)/UNIFICATIONS.length*100));
+    log('--- Groupe: '+u.code+' ---','info');
+    
+    for(var j=0;j<docs.length;j++){
+      var p=docs[j];
+      var name=(p.name||'').toLowerCase();
+      var match=false;
+      for(var k=0;k<u.mots_cles.length;k++){
+        if(name.includes(u.mots_cles[k])){match=true;break;}
+      }
+      if(match){
+        if(p.code!==u.code){
+          await db.collection('partenaires').doc(p.id).update({code:u.code});
+          log('  ✅ '+p.name+': '+p.code+' → '+u.code,'ok');
+          ok++;total++;
+        }else{
+          log('  ✓ '+p.name+' (déjà correct)','');
+        }
+      }
+    }
+    await new Promise(function(r){setTimeout(r,300);});
+  }
+  
+  log('=== TERMINÉ — '+ok+' codes mis à jour ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
