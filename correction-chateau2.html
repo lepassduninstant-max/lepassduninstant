@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Château des Lumières</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:350px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}.err{color:red;}</style>
+</head>
+<body>
+<h1>🏰 Château des Lumières — 6 activités</h1>
+<p>Met à jour coords + zone portes-baie pour toutes les activités.</p>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var ACTIVITES=[{"name": "Le Kota Grill Finlandais", "coords": [50.10799786438016, 1.56729709453919]}, {"name": "Le Chalet Kota", "coords": [50.108075273979225, 1.5672454620166743]}, {"name": "La Télécabine Megève", "coords": [50.10809591651781, 1.567154266911972]}, {"name": "Massage au Château des Lumières", "coords": [50.10800001464851, 1.566969865045845]}, {"name": "Head Spa Château des Lumières", "coords": [50.10798539282195, 1.5670670951207117]}, {"name": "Espace Bien-Être Château des Lumières", "coords": [50.10793163606834, 1.5672045583300063]}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs={};
+  snap.forEach(function(d){docs[d.data().name]=d.id;});
+  log(Object.keys(docs).length+' partenaires chargés','info');
+  
+  for(var i=0;i<ACTIVITES.length;i++){
+    var a=ACTIVITES[i];
+    var docId=docs[a.name];
+    if(docId){
+      await db.collection('partenaires').doc(docId).update({
+        coords:a.coords,
+        zone:'portes-baie'
+      });
+      log('✅ '+a.name,'ok');
+    }else{
+      log('⚠️ Non trouvé: '+a.name,'warn');
+    }
+    await new Promise(function(r){setTimeout(r,400);});
+  }
+  log('=== TERMINÉ ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
