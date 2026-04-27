@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Escap'Ânes + Corrections</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:350px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}.err{color:red;}</style>
+</head>
+<body>
+<h1>🐴 Escap'Ânes — 4 points + Aux Vents et Marées</h1>
+<p>Supprime toutes les entrées Escap'Ânes existantes et recrée 4 points précis.</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var ESCAPANES=[{"coords": [50.08853116281673, 1.425314294303081], "zone": "ault"}, {"coords": [50.33840539539142, 1.5567379576852545], "zone": "fort-mahon"}, {"coords": [50.21515696440027, 1.5663067969620281], "zone": "cayeux"}, {"coords": [50.14446478634098, 1.6756073510238276], "zone": "saint-valery"}];
+var CORRECTIONS=[{"name": "Aux Vents et Marées", "coords": [50.10213895090139, 1.445799981642004]}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function bar(pct){document.getElementById('bar').style.width=pct+'%';}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs={};
+  var escapanesDocs=[];
+  var escapanesData=null;
+  snap.forEach(function(d){
+    var p=d.data();
+    docs[p.name]=d.id;
+    if(p.name&&p.name.toLowerCase().includes("escap") && !p.name.toLowerCase().includes("locked")){
+      escapanesDocs.push(d.id);
+      if(!escapanesData)escapanesData={avantage:p.avantage,tel:p.tel,code:p.code,cat:p.cat};
+    }
+  });
+  log(escapanesDocs.length+' entrées Escap\'Ânes trouvées à supprimer','info');
+  
+  // Supprimer toutes les entrées Escap'Ânes
+  for(var i=0;i<escapanesDocs.length;i++){
+    await db.collection('partenaires').doc(escapanesDocs[i]).delete();
+    log('🗑️ Supprimé','warn');
+    bar(Math.round((i+1)/(escapanesDocs.length+ESCAPANES.length+CORRECTIONS.length)*100));
+  }
+  
+  // Créer 4 nouvelles entrées Escap'Ânes
+  log('Création des 4 nouveaux points...','info');
+  for(var j=0;j<ESCAPANES.length;j++){
+    var e=ESCAPANES[j];
+    await db.collection('partenaires').add({
+      name:"Escap'Anes",
+      cat:escapanesData?escapanesData.cat:'nature',
+      zone:e.zone,
+      adresse:'',
+      tel:escapanesData?escapanesData.tel:'',
+      avantage:escapanesData?escapanesData.avantage:'10% de remise',
+      code:escapanesData?escapanesData.code:'ESCAPANES2026',
+      coords:e.coords,
+      dist:0,
+      flash:null
+    });
+    log('✅ Ajouté zone '+e.zone+': ['+e.coords[0].toFixed(5)+', '+e.coords[1].toFixed(5)+']','ok');
+    bar(Math.round((escapanesDocs.length+j+1)/(escapanesDocs.length+ESCAPANES.length+CORRECTIONS.length)*100));
+    await new Promise(function(r){setTimeout(r,400);});
+  }
+  
+  // Corriger Aux Vents et Marées
+  log('Correction Aux Vents et Marées...','info');
+  for(var k=0;k<CORRECTIONS.length;k++){
+    var c=CORRECTIONS[k];
+    var docId=docs[c.name];
+    if(docId){
+      await db.collection('partenaires').doc(docId).update({coords:c.coords});
+      log('✅ '+c.name+' corrigé','ok');
+    }else log('⚠️ Non trouvé: '+c.name,'warn');
+    bar(100);
+  }
+  
+  log('=== TERMINÉ ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
