@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Max Guide en Baie</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.err{color:red;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>🧭 Max Guide en Baie — 4 points</h1>
+<p>Supprime l'entrée existante et crée 4 nouvelles.</p>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var NOUVELLES=[{"coords": [50.2522585916036, 1.5933594939702684], "zone": "crotoy"}, {"coords": [50.215910079299974, 1.633668310053967], "zone": "crotoy"}, {"coords": [50.21515174195106, 1.5665361087251934], "zone": "cayeux"}, {"coords": [50.182648, 1.645883], "zone": "saint-valery"}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var maxDocs=[];
+  var avantage='', tel='', code='MAXGUIDEENBA2026';
+  snap.forEach(function(d){
+    var p=d.data();
+    if(p.name&&p.name.toLowerCase().includes('max guide')){
+      maxDocs.push(d.id);
+      if(p.avantage)avantage=p.avantage;
+      if(p.tel)tel=p.tel;
+      if(p.code)code=p.code;
+    }
+  });
+  log(maxDocs.length+' entrées Max Guide trouvées','info');
+  
+  // Supprimer toutes les entrées existantes
+  for(var i=0;i<maxDocs.length;i++){
+    await db.collection('partenaires').doc(maxDocs[i]).delete();
+    log('🗑️ Supprimé: '+maxDocs[i].substring(0,10)+'...','warn');
+  }
+  
+  // Créer 4 nouvelles entrées
+  for(var j=0;j<NOUVELLES.length;j++){
+    var n=NOUVELLES[j];
+    await db.collection('partenaires').add({
+      name:'Max Guide en Baie de Somme',
+      cat:'nature',
+      zone:n.zone,
+      adresse:'',
+      tel:tel,
+      avantage:avantage||'10% de remise',
+      code:code,
+      coords:n.coords,
+      dist:0,
+      flash:null
+    });
+    log('✅ Ajouté zone '+n.zone+': ['+n.coords[0].toFixed(5)+', '+n.coords[1].toFixed(5)+']','ok');
+    await new Promise(function(r){setTimeout(r,500);});
+  }
+  log('=== TERMINÉ — 4 points créés ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
