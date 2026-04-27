@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Corrections 3 partenaires</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>🗺️ Corrections — 3 partenaires</h1>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function bar(p){document.getElementById('bar').style.width=p+'%';}
+
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs=[];
+  snap.forEach(function(d){docs.push({id:d.id,...d.data()});});
+  log(docs.length+' partenaires chargés','ok');
+  bar(10);
+
+  // 1. Escap'Ânes Saint-Valery
+  log("1. Escap'Ânes Saint-Valery...",'info');
+  var ea=docs.find(function(d){return d.name&&d.name.toLowerCase().includes("escap")&&!d.name.toLowerCase().includes('locked')&&d.zone==='saint-valery';});
+  if(ea){
+    await db.collection('partenaires').doc(ea.id).update({coords:[50.19164195224978,1.6127230897324891]});
+    log('  ✅ Corrigé','ok');
+  }else log('  ⚠️ Non trouvé','warn');
+  bar(40);
+
+  // 2. EI Jeremy Toussart
+  log('2. EI Jeremy Toussart...','info');
+  var ei=docs.find(function(d){return d.name&&d.name.toLowerCase().includes('jeremy');});
+  if(ei){
+    await db.collection('partenaires').doc(ei.id).update({coords:[50.11121462686524,1.5681049214400584]});
+    log('  ✅ Corrigé','ok');
+  }else log('  ⚠️ Non trouvé','warn');
+  bar(70);
+
+  // 3. Freetrotts - tous les points
+  log('3. Freetrotts...','info');
+  var count=0;
+  for(var i=0;i<docs.length;i++){
+    var d=docs[i];
+    if(d.name&&d.name.toLowerCase().includes('freetrotts')){
+      await db.collection('partenaires').doc(d.id).update({coords:[50.17413212741921,1.6585379258256823]});
+      log('  ✅ Corrigé: '+d.name,'ok');
+      count++;
+    }
+  }
+  if(count===0)log('  ⚠️ Freetrotts non trouvé','warn');
+  bar(100);
+
+  log('=== TERMINÉ ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
