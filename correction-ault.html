@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Correction Ault</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:250px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>📍 Correction GPS — Ault</h1>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Corriger</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var CORRECTIONS=[{"name": "Le Saint-Pierre", "coords": [50.10172356604335, 1.4459713510668584]}, {"name": "Le Fil Rouge", "coords": [50.101603236976196, 1.4461269392603742]}, {"name": "SEAJO", "coords": [50.10200329578298, 1.44583248334268]}];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs={};snap.forEach(function(d){docs[d.data().name]=d.id;});
+  log(Object.keys(docs).length+' partenaires chargés','info');
+  for(var i=0;i<CORRECTIONS.length;i++){
+    var c=CORRECTIONS[i];
+    var docId=docs[c.name];
+    if(docId){
+      await db.collection('partenaires').doc(docId).update({coords:c.coords});
+      log('✅ '+c.name+': ['+c.coords[0].toFixed(6)+', '+c.coords[1].toFixed(6)+']','ok');
+    }else{
+      log('⚠️ Non trouvé: '+c.name,'warn');
+    }
+    await new Promise(function(r){setTimeout(r,500);});
+  }
+  log('=== TERMINÉ ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
