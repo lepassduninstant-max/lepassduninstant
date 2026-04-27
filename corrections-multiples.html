@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Corrections multiples</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:380px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}.err{color:red;}</style>
+</head>
+<body>
+<h1>🗺️ Corrections multiples</h1>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function bar(p){document.getElementById('bar').style.width=p+'%';}
+
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs=[]; 
+  snap.forEach(function(d){docs.push({id:d.id,...d.data()});});
+  log(docs.length+' partenaires chargés','ok');
+  bar(10);
+
+  // 1. Modifier Sortie Pirogue CKMVBP
+  log('1. Sortie Pirogue CKMVBP...','info');
+  var pirogue=docs.find(function(d){return d.name&&d.name.toLowerCase().includes('pirogue');});
+  if(pirogue){await db.collection('partenaires').doc(pirogue.id).update({coords:[50.19017637639098,1.6274590528116002]});log('  ✅ Corrigé','ok');}
+  else log('  ⚠️ Non trouvé','warn');
+  bar(25);
+
+  // 2. Ajouter Escap'Anes Saint-Valery
+  log("2. Ajout Escap'Ânes Saint-Valery...",'info');
+  var ea=docs.find(function(d){return d.name&&d.name.toLowerCase().includes("escap") && !d.name.toLowerCase().includes('locked');});
+  await db.collection('partenaires').add({
+    name:"Escap'Anes", cat:ea?ea.cat:'nature', zone:'saint-valery',
+    adresse:'', tel:ea?ea.tel:'', avantage:ea?ea.avantage:'10% de remise',
+    code:ea?ea.code:'ESCAPANES2026', coords:[50.19191421320168,1.6130502260215798], dist:0, flash:null
+  });
+  log('  ✅ Ajouté','ok');
+  bar(40);
+
+  // 3. Modifier BSE Saint-Valery
+  log('3. BSE Saint-Valery...','info');
+  var bse=docs.find(function(d){return d.name&&d.name.toLowerCase().includes('baie de somme exploration')&&d.zone==='saint-valery';});
+  if(bse){await db.collection('partenaires').doc(bse.id).update({coords:[50.19153642797808,1.6134579217837803]});log('  ✅ Corrigé','ok');}
+  else log('  ⚠️ Non trouvé','warn');
+  bar(55);
+
+  // 4. Supprimer + recréer Les Filles Saint-Valery
+  log('4. Les Filles Saint-Valery...','info');
+  var filles=docs.find(function(d){return d.name&&d.name.toLowerCase().includes('filles')&&d.zone==='saint-valery';});
+  if(filles){
+    await db.collection('partenaires').doc(filles.id).delete();
+    log('  🗑️ Ancienne position supprimée','warn');
+    await db.collection('partenaires').add({
+      name:filles.name, cat:filles.cat, zone:'saint-valery',
+      adresse:filles.adresse||'', tel:filles.tel||'', avantage:filles.avantage||'',
+      code:filles.code||'LESFILLESETL2026', coords:[50.18826004516181,1.631505954662387], dist:0, flash:null
+    });
+    log('  ✅ Nouvelle position ajoutée','ok');
+  }else log('  ⚠️ Non trouvé','warn');
+  bar(75);
+
+  // 5. Modifier Au coin des Augustines
+  log('5. Au coin des Augustines...','info');
+  docs.forEach(async function(d){
+    if(d.name&&d.name.toLowerCase().includes('augustines')){
+      await db.collection('partenaires').doc(d.id).update({coords:[50.18821428090627,1.6315521969907232]});
+      log('  ✅ Corrigé: '+d.name,'ok');
+    }
+  });
+  bar(100);
+  
+  setTimeout(function(){log('=== TERMINÉ ===','info');btn.textContent='Terminé !';},1500);
+}
+</script></body></html>
