@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Balade Nautique</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:250px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}</style>
+</head>
+<body>
+<h1>⛵ Balade Nautique — Tréport + Mers</h1>
+<p>Met à jour l'entrée existante (Tréport) et ajoute une entrée Mers-les-Bains.</p>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Lancer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBByp"+"Srspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var COORDS=[50.062590394943115,1.378339589043275];
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var baladeDocs=[];
+  var baladeData=null;
+  snap.forEach(function(d){
+    var p=d.data();
+    if(p.name&&p.name.toLowerCase().includes('balade nautique')){
+      baladeDocs.push({id:d.id,data:p});
+      baladeData=p;
+    }
+  });
+  log(baladeDocs.length+' entrée(s) Balade Nautique trouvée(s)','info');
+  
+  // Mettre à jour l'entrée existante → zone treport
+  if(baladeDocs.length>0){
+    await db.collection('partenaires').doc(baladeDocs[0].id).update({
+      coords:COORDS,
+      zone:'treport'
+    });
+    log('✅ Mis à jour → zone treport','ok');
+  }
+  
+  // Ajouter une entrée pour Mers-les-Bains
+  await db.collection('partenaires').add({
+    name:baladeData?baladeData.name:'Balade Nautique en Voilier',
+    cat:baladeData?baladeData.cat:'nature',
+    zone:'mers',
+    adresse:baladeData?baladeData.adresse:'',
+    tel:baladeData?baladeData.tel:'',
+    avantage:baladeData?baladeData.avantage:'',
+    code:baladeData?baladeData.code:'BALADENAUTIQ2026',
+    coords:COORDS,
+    dist:0,
+    flash:null
+  });
+  log('✅ Ajouté zone mers','ok');
+  log('=== TERMINÉ ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
