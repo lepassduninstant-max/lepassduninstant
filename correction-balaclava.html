@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Correction Balaclava</title></head>
+<body>
+<p id="msg">Cliquez pour corriger</p>
+<button onclick="go()">Corriger Balaclava Fripes</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",
+  authDomain: "pass-instant.firebaseapp.com",
+  projectId: "pass-instant",
+  storageBucket: "pass-instant.firebasestorage.app",
+  messagingSenderId: "234758483474",
+  appId: "1:234758483474:web:7d739963a99a7bd573f2cb"
+});
+var db = firebase.firestore();
+async function go() {
+  try {
+    var snap = await db.collection('partenaires').get();
+    var count = 0;
+    snap.forEach(async function(d) {
+      if ((d.data().name||'').toLowerCase().includes('balaclava')) {
+        await db.collection('partenaires').doc(d.id).update({coords:[50.1846025698474,1.6433585000000186]});
+        count++;
+        document.getElementById('msg').textContent = 'OK ! ' + d.data().name + ' corrigé';
+      }
+    });
+    if (count === 0) document.getElementById('msg').textContent = 'Non trouvé';
+  } catch(e) {
+    document.getElementById('msg').textContent = 'Erreur: ' + e.message;
+  }
+}
+</script></body></html>
