@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Import Descriptions</title>
+<style>body{font-family:sans-serif;max-width:700px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:400px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;transition:width 0.3s;}.ok{color:green;}.warn{color:orange;}.info{color:blue;}</style>
+</head>
+<body>
+<h1>📝 Import descriptions partenaires</h1>
+<p>104 descriptions à mettre à jour dans Firebase</p>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Importer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",
+  authDomain: "pass-instant.firebaseapp.com",
+  projectId: "pass-instant",
+  storageBucket: "pass-instant.firebasestorage.app",
+  messagingSenderId: "234758483474",
+  appId: "1:234758483474:web:7d739963a99a7bd573f2cb"
+});
+var db = firebase.firestore();
+var DESCRIPTIONS = {"Aloha Massage": "Massage", "Comme une Plume": "Soin énergetique / Raiki / Réfléxologie ou Sophrologie", "Det'Ox Massage": "Massage", "Espace Bien-Être Château des Lumières": "Pricvatisation d'un Jaccuzi au cœur d'un parc", "Head Spa Château des Lumières": "Massage", "Ma Zen Attitude en Baie": "Massage", "Ma'Douceur": "Massage", "Massage Château des Lumières": "Massage", "Massage UniverSoi": "Massage", "Sophro Balade Comme une Plume": "Combinaison entre Sophrologie et Balade", "Au Pain de Caractère": "Boulangerie / Pâtisserie", "Balaclava Fripes": "Friperie de marque", "Boucherie Boudinel": "Boucherie / Charcuterie", "Bulle Marine": "Boutique de créateurs et de souvenirs", "Déco Trèfle": "Fabrication d'objet déco à base de déchets marins", "Dépôt Vente Arques en Ciel": "Espace Brocante de 800m2", "L'Apiculteur en Baie de Somme": "Producteur de Miel", "L'Atelier du Vin (cave)": "Cave à vin, bière et spiritueux", "La Baie des Gourmets": "Boutique de produits du terroir", "La Boutique de l'Oncle Eugène": "Librairie d'occasion, jeux de société et vinyls", "La Brulerie": "Café torréfié made in Baie de Somme / produits locaux", "La Poissonnerie de la côte": "Poissonnerie", "La Poissonnerie du Marais": "Poissonnerie", "La Vannerie du Boisle": "Vannerie emblématique de notre région", "Le Temps du Sucre": "Chocolatière et créatrice du cannelé Picard", "Les Chocolats Au Coin des Augustines": "Salon de chocolat", "Les Filles et leur coccinelle": "Boutique de vêtements et bijoux", "Micro Brasserie BBS": "Producteur de bières locales", "Poissonnerie L'Océane": "Poissonnerie", "Poissonnerie Opale Marée": "Poissonnerie", "Quend 2 3 Soleil": "Boutique de souvenirs", "SEAJO": "Boutique de créateurs et vêtements", "Cote & Sport 360 - Badminton": "Complexe sportif multi activités", "Cote & Sport 360 - Beach Volley": "Complexe sportif multi activités", "Cote & Sport 360 - Foot à 5": "Complexe sportif multi activités", "Cote & Sport 360 - Fun Escalade": "Complexe sportif multi activités", "Cote & Sport 360 - Padel": "Complexe sportif multi activités", "Cote & Sport 360 - Pickle Ball": "Complexe sportif multi activités", "La Cabine Mystère by Locked": "Escape Game", "Baie de Somme Exploration": "Chasse au trésor et jeux de pistes", "Balade Nautique en Voilier": "Sortie bateau", "Baluchon Crotoy-Lanta": "Activité Koh-Lanta", "Char à Voile Sensation Large": "Sortie Char à voile", "Freetrotts - Draisiennes": "Location Mini Scooter Electrique", "Freetrotts - Trottinette électrique": "Location Tritinette Electrique", "Initiation Vannerie du Boisle": "Activité initiation Vannerie", "La Télécabine Megève": "Repas dans une télécabine au cœur d'un parc", "Le Repaire Vintage": "Location voiture de collection pour découvrir la région", "Locked Escape Game": "Escape Game", "Ludair ULM": "Survol de la Baie de Somme en ULM", "Pinasses de la Baie": "Croisière commentée en Baie de Somme", "Stage Catamaran Sensation Large": "Actvité Catamaran", "Stages Vacances Optimist": "Activité Optimist petit bateau", "Tuk-Tour Valéricain": "Balade commentée de Saint-Valery sur Somme", "Au réconfort - Location Rosalie": "Location de Rosalie", "Au réconfort - Location Vélo": "Location de Vélo", "Cont'Âne": "Histoire contée au contact des ânes", "Escap'Anes": "Balade avec un  âne ou à dos d'âne pour les plus petits", "Freetrotts - VTC Electrique": "Location Vélo Electrique", "Happy Park Crécy": "Accrobranche au cœur de la fôret de Crécy", "La Ferme Equestre de Morlay": "Balade en Henson cheval emblématique de chez nous", "Le Moulin du Petit Marais (pêche)": "Activité pêche à la truite", "Les Clapes de La Mollière": "Location de vélos", "Les Jardins de la Baie de Somme": "Visitez un jardin historique reconstitué du moyen âge", "Max Guide en Baie de Somme": "Sortie nature en Baie de Somme, traversée de la baie", "Norwoé Découvertes": "Découvrez les parcs à moules et la mytilculture", "Sortie Crevettes et Pousseux": "Activité de pêche à la crevette à l'épuisette", "Sortie Pirogue CKMVBP": "Voguez sur la Baie de Somme à bord d'une pirogue", "Visit'Âne": "A la rencontre des ânes directement chez eux", "Anantaya Thaï Food": "Dégustez la cuisine Thai avec des produits locaux", "Aux Vents et Marées": "La cuisine de grand-mère par excellence", "Baby Bouffe": "Friterie Traditionnelle", "Crêperie Au coin des Augustines": "Crêpes sucrées et galettes de sarrasins", "Crêperie La Belle Epoque": "Crêpes sucrées et galettes de sarrasins", "Dégustation Fruits de Mer by Jordan Marée": "La paillote pour déguster des produits de la mer", "Dégustation Poissonnerie l'Océane (resto)": "La terrasse dégustation pour savourer des fruits de mer", "Jessy's Péniche": "Snack bar sur une péniche sur le canal de la somme", "L'Alcyone": "Brasserie traditionnelle", "L'Atelier du Vin (restaurant)": "Coin dégustation de la cave à vin + planche à partager", "L'Embarcadère": "Restaurant traditionnelle", "La Baie les Gaufres": "Véritable Gauffres Liegeoises", "La Belle Etoile": "Cuisine Bistronomique", "La Buvette du Mouton": "Bar de Plage et braséro l'été, brasserie l'hiver", "La Clé des Champs": "Cuisine Gastronomique", "La Guinguette de Petit Port": "Guinguette le long du canal de la Somme", "La Ripaille": "Cuisson au feu de bois et côte à l'os à l'honneur", "Le BB's Bar": "Bar à cocktail, bar à bière et bar lounge", "Le Baie Beach Bar": "Bar de Plage, fruits de mer et planches à partager", "Le Chalet Kota": "Partagez une fondue dans un kota finlandais", "Le Fil Rouge": "Brasserie  traditionnelle", "Le Homard Bleu": "Cuisine Bistronomique", "Le Kota Grill Finlandais": "Partagez une grillade locale dans un kota finlandais", "Le Lambi": "Cuisine traditionnelle", "Le Nautilus": "Cuisine traditionnelle", "Le Petit Baigneur": "Cuisine traditionnelle", "Le Saint-Pierre": "Cuisine de bistro", "Les Comptoirs de l'Océan": "Cuisine de la mer", "Les Diables au Thym": "Spécialité burger et carte snacking", "Martin & Cow": "Bar à fromage et charcutuerie fine", "One Coffee Brunch": "Spécialité Brunch", "Revisiter": "Food truck cuisine de produits locaux", "Snack Bar du Moulin du Petit Marais": "Friterie Traditionnelle", "Tréamori": "Restaurant Italien", "Taxi Delahaye": "Service Taxi sur tous secteurs"};
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function lancer() {
+  var btn = document.getElementById('btn');
+  btn.disabled = true;
+  log('Chargement Firebase...', 'info');
+  
+  var snap = await db.collection('partenaires').get();
+  var docs = {};
+  snap.forEach(function(d) { docs[d.data().name] = d.id; });
+  log(Object.keys(docs).length + ' partenaires chargés', 'ok');
+  
+  var names = Object.keys(DESCRIPTIONS);
+  var ok = 0, warn = 0;
+  
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    var desc = DESCRIPTIONS[name];
+    document.getElementById('bar').style.width = Math.round((i+1)/names.length*100) + '%';
+    
+    var docId = docs[name];
+    if (docId) {
+      await db.collection('partenaires').doc(docId).update({ description: desc });
+      log('✅ ' + name, 'ok');
+      ok++;
+    } else {
+      log('⚠️ Non trouvé: ' + name, 'warn');
+      warn++;
+    }
+    await new Promise(function(r) { setTimeout(r, 200); });
+  }
+  
+  log('=== TERMINÉ — ✅ ' + ok + ' mis à jour, ⚠️ ' + warn + ' non trouvés ===', 'info');
+  btn.textContent = 'Terminé !';
+}
+</script>
+</body></html>
