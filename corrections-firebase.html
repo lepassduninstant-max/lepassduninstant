@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Corrections</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:300px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;margin:4px;}button.rouge{background:#C0392B;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}</style>
+</head><body>
+<h1>🔧 Corrections Firebase</h1>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button onclick="supprimerDoublonEscap()">🗑️ Supprimer doublon Escap'Ânes Saint-Valery</button>
+<button onclick="ajouterLockedIndoor()">➕ Ajouter Locked Indoor Portes Baie</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+
+async function supprimerDoublonEscap(){
+  log('Recherche doublons Escap Anes Saint-Valery...','info');
+  var snap=await db.collection('partenaires').get();
+  var escapSV=[];
+  snap.forEach(function(d){
+    var p=d.data();
+    if((p.name||'').toLowerCase().includes("escap") && p.zone==='saint-valery'){
+      escapSV.push({id:d.id,...p});
+    }
+  });
+  log(escapSV.length+' entree(s) Escap saint-valery trouvee(s)','info');
+  if(escapSV.length>=2){
+    // Supprimer la première (garder la dernière ajoutée)
+    await db.collection('partenaires').doc(escapSV[0].id).delete();
+    log('✅ Doublon supprimé: '+escapSV[0].name+' ('+escapSV[0].id.substring(0,8)+'...)','ok');
+  }else{
+    log('⚠️ Pas de doublon trouvé','warn');
+  }
+}
+
+async function ajouterLockedIndoor(){
+  log('Vérification Locked Indoor existant...','info');
+  var snap=await db.collection('partenaires').get();
+  var exists=false;
+  snap.forEach(function(d){
+    var p=d.data();
+    if((p.name||'').toLowerCase().includes('locked') && p.cat==='indoor' && p.zone==='portes-baie'){
+      exists=true;
+    }
+  });
+  if(exists){log('⚠️ Locked Indoor Portes Baie existe déjà','warn');return;}
+  
+  await db.collection('partenaires').add({
+    name:'Locked Escape Game',
+    cat:'indoor',
+    zone:'portes-baie',
+    adresse:'90 rue marius briet, 80130 Friville-Escarbotin',
+    tel:'',
+    avantage:'10% de remise sur votre session',
+    description:'Escape game et salle immersive',
+    code:'LOCKED2026',
+    coords:[50.0953606,1.5402687],
+    dist:0,
+    flash:null
+  });
+  log('✅ Locked Escape Game ajouté en Indoor Portes Baie !','ok');
+}
+</script></body></html>
