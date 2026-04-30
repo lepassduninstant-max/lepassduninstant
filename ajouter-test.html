@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Ajouter Partenaire Test</title></head>
+<body>
+<p id="msg">Cliquez pour ajouter</p>
+<button onclick="go()">Ajouter Partenaire Test</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant"});
+var db=firebase.firestore();
+async function go(){
+  try{
+    await db.collection('partenaires').add({
+      name:"Partenaire Test",
+      cat:"bonus",
+      zone:"tous-secteurs",
+      adresse:"Test",
+      tel:"",
+      avantage:"Compte de test",
+      description:"Compte de test — ne pas utiliser",
+      code:"TEST2026",
+      coords:[50.1827,1.6434],
+      dist:0,
+      flash:null
+    });
+    document.getElementById('msg').textContent='✅ Partenaire Test ajouté !';
+  }catch(e){
+    document.getElementById('msg').textContent='Erreur: '+e.message;
+  }
+}
+</script></body></html>
