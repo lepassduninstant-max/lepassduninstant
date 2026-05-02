@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Import Sites Internet</title>
+<style>body{font-family:sans-serif;max-width:700px;margin:20px auto;padding:20px;background:#FAF6F1;color:#3D2B1F;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:400px;overflow-y:auto;font-size:11px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.bar-wrap{height:8px;background:#eee;border-radius:4px;margin:8px 0;}.bar{height:8px;background:#C4A882;border-radius:4px;width:0;transition:width 0.3s;}.ok{color:green;}.info{color:blue;}.warn{color:orange;}</style>
+</head><body>
+<h1>🌐 Import sites internet — 63 partenaires</h1>
+<div class="bar-wrap"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Importer</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant",storageBucket:"pass-instant.firebasestorage.app",messagingSenderId:"234758483474",appId:"1:234758483474:web:7d739963a99a7bd573f2cb"});
+var db=firebase.firestore();
+var WEBSITES={"Aloha Massage": "https://www.aloha-massagebienetre.fr/", "Comme une Plume": "https://commeuneplumesophro.com/reflexologie", "Det'Ox Massage": "https://www.massagedetox.com/", "Espace Bien-Être Château des Lumières": "https://www.lechateaudeslumieres.com/fr/page/spa", "Head Spa Château des Lumières": "https://www.lechateaudeslumieres.com/fr/page/spa", "Massage Château des Lumières": "https://www.lechateaudeslumieres.com/fr/page/spa", "Massage UniverSoi": "https://zoegandonuniversoi.fr/?fbclid=IwAR2H891lWfDkrPT0iOe-zAspMsY2QS-qPPrtjzSA7XkHyCuVwNEYEkFnvR4", "Sophro Balade Comme une Plume": "https://commeuneplumesophro.com/seances", "ABC Informatique": "https://abcinformatique.fr/", "Ch'ti Copeaux": "https://chticopeaux.fr/", "GLA Solution Serrurerie": "https://solution-serrurier.fr/", "Jard'in Baie 80": "https://sites.google.com/jardinbaie.com/jard-inbaie/accueil", "La Compagnie du Lit Abbeville": "https://www.lacompagniedulit.com/magasins/abbeville-80.html?gad_source=1&gad_campaignid=21740811090&gbraid=0AAAAAqMB5F-ts3hcFde6IoAxwl6Ng6BQU&gclid=CjwKCAjwwdbPBhBgEiwAxBRA4dookhKPNpFWfaTdq5-x0fxYbp-2yCDNBz9uhLMvZJgyYOgjiMoI8BoC9d8QAvD_BwE", "Déco Trèfle": "https://www.decotrefle.fr/", "La Baie des Gourmets": "https://labaiedesgourmets.fr/", "La Boutique de l'Oncle Eugène": "https://boutique-oncle-eugene.com/", "La Vannerie du Boisle": "https://boutique.candas.fr/fr/", "Le Temps du Sucre": "https://www.letempsdusucre.fr/", "SEAJO": "https://seajo-concept-store.myshopify.com/", "Cote & Sport 360 - Badminton": "https://www.cotesport360.fr/", "Cote & Sport 360 - Beach Volley": "https://www.cotesport360.fr/", "Cote & Sport 360 - Foot à 5": "https://www.cotesport360.fr/", "Cote & Sport 360 - Fun Escalade": "https://www.cotesport360.fr/", "Cote & Sport 360 - Padel": "https://www.cotesport360.fr/", "Cote & Sport 360 - Pickle Ball": "https://www.cotesport360.fr/", "La Cabine Mystère by Locked": "https://locked-game.fr/", "Baie de Somme Exploration": "https://baiedesomme-exploration.fr/", "Balade Nautique en Voilier": "https://www.sensationlarge.com/sortie-voilier-decouverte-voile-falaises.php", "Baluchon Crotoy-Lanta": "https://pagaiesetbaluchons.fr/", "Char à Voile Sensation Large": "https://www.sensationlarge.com/char-a-voile-particuliers.php", "Freetrotts - Draisiennes": "https://www.location-trottinette-baie-somme.com/", "Freetrotts - Trottinette électrique": "https://www.location-trottinette-baie-somme.com/", "Initiation Vannerie du Boisle": "https://boutique.candas.fr/fr/", "La Télécabine Megève": "https://www.lechateaudeslumieres.com/fr/page/table-dhotes", "Le Repaire Vintage": "https://lerepairevintage.fr/", "Locked Escape Game": "https://locked-game.fr/", "Pinasses de la Baie": "https://pinassesdelabaie.fr/pinasse-moteur-electrique-cailloc/", "Stage Catamaran Sensation Large": "https://www.sensationlarge.com/stages-14-ans-adultes-catamaran.php", "Stages Vacances Optimist": "https://www.sensationlarge.com/stages-5-7-ans-optimist.php#", "Tuk-Tour Valéricain": "https://tuktourvalericain.jimdofree.com/", "Au réconfort - Location Rosalie": "https://location-velos-rosalies.fr/", "Au réconfort - Location Vélo": "https://location-velos-rosalies.fr/", "Cont'Âne": "https://www.escap-anes.fr/#", "Escap'Anes": "https://www.escap-anes.fr/#", "Freetrotts - VTC Electrique": "https://www.location-trottinette-baie-somme.com/", "Happy Park Crécy": "https://www.happy-park-crecy.fr/", "La Ferme Equestre de Morlay": "https://www.chevalhenson.fr/", "Le Moulin du Petit Marais (pêche)": "https://www.le-moulin-du-petit-marais.com/", "Les Jardins de la Baie de Somme": "https://herbarium-des-remparts.fr/", "Max Guide en Baie de Somme": "https://www.guide-baie-somme.com/", "Norwoé Découvertes": "https://norwoe-decouvertes.com/", "Sortie Crevettes et Pousseux": "https://pagaiesetbaluchons.fr/", "Sortie Pirogue CKMVBP": "https://www.kayak-somme.com/?fbclid=IwAR2VvL7pbgAM-Q7CuhlQK4MkSD7hXARcTrXwk-PB8eXsTDDW5OLK4U6-Wdo", "Visit'Âne": "https://www.escap-anes.fr/#", "L'Alcyone": "https://www.alcyonefmp.fr/", "L'Atelier du Vin (restaurant)": "https://latelierduvinabbeville.fr/", "La Baie les Gaufres": "https://labaielesgaufres.fr/", "La Clé des Champs": "https://www.restaurant-lacledeschamps.com/", "Le Chalet Kota": "https://www.lechateaudeslumieres.com/fr/page/table-dhotes", "Le Kota Grill Finlandais": "https://www.lechateaudeslumieres.com/fr/page/table-dhotes", "Le Petit Baigneur": "https://lepetitbaigneuracayeux.fr/", "Snack Bar du Moulin du Petit Marais": "https://www.le-moulin-du-petit-marais.com/", "Taxi Delahaye": "https://ambulancestaxisdelahaye.fr/"};
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement Firebase...','info');
+  var snap=await db.collection('partenaires').get();
+  var docs={};
+  snap.forEach(function(d){docs[d.data().name]=d.id;});
+  log(Object.keys(docs).length+' partenaires chargés','ok');
+  var names=Object.keys(WEBSITES);
+  var ok=0,warn=0;
+  for(var i=0;i<names.length;i++){
+    var name=names[i];
+    var url=WEBSITES[name];
+    document.getElementById('bar').style.width=Math.round((i+1)/names.length*100)+'%';
+    var docId=docs[name];
+    if(docId){
+      await db.collection('partenaires').doc(docId).update({website:url});
+      log('✅ '+name,'ok');ok++;
+    }else{
+      log('⚠️ Non trouvé: '+name,'warn');warn++;
+    }
+    await new Promise(function(r){setTimeout(r,200);});
+  }
+  log('=== TERMINÉ — ✅ '+ok+' mis à jour, ⚠️ '+warn+' non trouvés ===','info');
+  btn.textContent='Terminé !';
+}
+</script></body></html>
