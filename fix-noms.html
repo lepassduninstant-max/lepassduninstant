@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Fix noms partenaires</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:20px auto;padding:20px;background:#FAF6F1;}.log{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;height:250px;overflow-y:auto;font-size:12px;font-family:monospace;margin:12px 0;}button{background:#3D2B1F;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:14px;cursor:pointer;}button:disabled{opacity:0.5;}.ok{color:green;}.info{color:blue;}</style>
+</head><body>
+<h1>🔧 Correction noms partenaires</h1>
+<div class="log" id="log"><div class="info">Prêt.</div></div>
+<button id="btn" onclick="lancer()">▶ Corriger</button>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",authDomain:"pass-instant.firebaseapp.com",projectId:"pass-instant"});
+var db=firebase.firestore();
+function log(msg,cls){var el=document.getElementById('log');var d=document.createElement('div');if(cls)d.className=cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+
+var CORRECTIONS = [
+  {code:'SENSATIONLARGE2026', nom:'Sensation Large'},
+  {code:'COTESPORT3602026', nom:'Côte&Sport 360'},
+];
+
+async function lancer(){
+  var btn=document.getElementById('btn');btn.disabled=true;
+  log('Chargement...','info');
+  var snap=await db.collection('partenaires').get();
+  var ok=0;
+  
+  for(var i=0;i<CORRECTIONS.length;i++){
+    var c=CORRECTIONS[i];
+    var found=false;
+    snap.forEach(async function(d){
+      if((d.data().code||'')===c.code && !found){
+        found=true;
+        await db.collection('partenaires').doc(d.id).update({name:c.nom});
+        log('✅ '+d.data().name+' → '+c.nom,'ok');
+        ok++;
+      }
+    });
+    await new Promise(function(r){setTimeout(r,500);});
+  }
+  
+  setTimeout(function(){
+    log(ok+' corrections effectuées','info');
+    btn.textContent='Terminé !';
+  },1500);
+}
+</script></body></html>
