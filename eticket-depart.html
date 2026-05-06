@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Pass d'un Instant — E-Ticket Gratuit Départ</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --brown: #5C3D2E;
+    --brown-light: #8B6050;
+    --brown-mid: #A0745A;
+    --red-accent: #C0392B;
+    --gold: #C9A84C;
+    --border: #DDD0C0;
+    --text: #3A2A1A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Lato", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+  .logo-wrap { text-align: center; margin-bottom: 1rem; }
+  .logo-wrap img { width: 90px; height: 90px; object-fit: contain; }
+  h1 { font-family: "Playfair Display", serif; font-size: 1.8rem; color: var(--brown); text-align: center; margin-bottom: 0.3rem; }
+  h1 span { color: var(--red-accent); font-style: italic; }
+  .etiquette { text-align: center; font-family: "Playfair Display", serif; font-size: 1.4rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brown); margin-bottom: 0.3rem; }
+  .subtitle { text-align: center; font-size: 0.88rem; color: var(--brown-mid); margin-bottom: 2rem; }
+  .badge-gratuit { display: inline-block; background: #27AE60; color: white; font-size: 0.8rem; font-weight: 700; padding: 4px 14px; border-radius: 999px; margin-bottom: 1.5rem; letter-spacing: 0.05em; }
+
+  /* FORMULAIRE */
+  .form-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 480px; box-shadow: 0 4px 24px rgba(92,61,46,0.07); margin-bottom: 2rem; }
+  .form-card h2 { font-family: "Playfair Display", serif; font-size: 1.1rem; color: var(--brown); margin-bottom: 1.4rem; border-bottom: 1px solid var(--border); padding-bottom: 0.7rem; }
+  .field { margin-bottom: 1.2rem; }
+  label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--brown-light); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.35rem; }
+  input { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-family: "Lato", sans-serif; font-size: 0.95rem; color: var(--text); background: var(--cream); transition: border-color 0.2s; outline: none; }
+  input:focus { border-color: var(--brown-mid); background: white; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .mdp-box { background: #FFF9E6; border: 2px solid var(--gold); border-radius: 10px; padding: 1rem; margin-bottom: 1.2rem; }
+  .mdp-box label { color: var(--brown); }
+  .mdp-box p { font-size: 0.75rem; color: var(--brown-mid); margin-top: 0.4rem; }
+
+  .btn-generate { width: 100%; padding: 0.9rem; background: var(--brown); color: white; font-family: "Lato", sans-serif; font-size: 1rem; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s; }
+  .btn-generate:hover { background: var(--brown-light); }
+  .error-msg { color: var(--red-accent); font-size: 0.85rem; margin-top: 0.5rem; display: none; font-weight: 700; text-align: center; }
+
+  /* TICKET */
+  #ticket-area { width: 100%; max-width: 380px; display: none; }
+  .ticket { background: white; border: 2px solid var(--brown); border-radius: 16px; padding: 2rem 1.6rem 1.6rem; position: relative; overflow: hidden; }
+  .ticket::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #27AE60, var(--gold), #27AE60); }
+  .ticket-header { text-align: center; margin-bottom: 1.2rem; }
+  .ticket-logo { width: 60px; height: 60px; object-fit: contain; margin-bottom: 0.5rem; }
+  .ticket-title { font-family: "Playfair Display", serif; font-size: 1.2rem; color: var(--brown); }
+  .ticket-title span { color: var(--red-accent); font-style: italic; }
+  .ticket-etiquette { font-size: 1rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brown); font-weight: 700; margin-top: 0.3rem; }
+  .ticket-badge-gratuit { display: inline-block; background: #27AE60; color: white; font-size: 0.75rem; font-weight: 700; padding: 3px 12px; border-radius: 999px; margin-top: 0.4rem; }
+  .ticket-divider { border: none; border-top: 1px dashed var(--border); margin: 1rem 0; }
+  .ticket-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; font-size: 0.92rem; }
+  .t-label { color: var(--brown-mid); font-weight: 300; min-width: 130px; }
+  .t-value { font-weight: 700; color: var(--text); text-align: right; }
+  .ticket-dates-box { background: #E9F7EF; border: 1px solid #A9DFBF; border-radius: 10px; padding: 0.9rem 1rem; margin: 1rem 0; }
+  .dates-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #1E8449; margin-bottom: 0.6rem; }
+  .dates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .date-cell { text-align: center; }
+  .dc-label { font-size: 0.7rem; color: #1E8449; text-transform: uppercase; letter-spacing: 0.05em; }
+  .dc-value { font-family: "Playfair Display", serif; font-size: 1.1rem; color: var(--brown); font-weight: 600; }
+  .ticket-qr-area { text-align: center; margin: 1rem 0 0.5rem; }
+  .ticket-qr-area p { font-size: 0.78rem; color: var(--brown-mid); margin-top: 0.5rem; line-height: 1.5; }
+  .ticket-footer { text-align: center; font-size: 0.75rem; color: var(--brown-mid); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+  /* APRES TELECHARGEMENT */
+  .btn-download { width: 100%; padding: 0.85rem; background: #27AE60; color: white; font-family: "Lato", sans-serif; font-size: 0.95rem; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; margin-top: 1.2rem; transition: background 0.2s; }
+  .btn-download:hover { background: #1E8449; }
+</style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <img src="https://i.ibb.co/kVvc3HVt/logo-Le-Pass-Dun-Instant.png" alt="Logo Le Pass d'un Instant">
+</div>
+<h1>Le pass d'un <span>instant</span></h1>
+<p class="etiquette">E-Ticket Départ</p>
+<div style="text-align:center;"><span class="badge-gratuit">🎁 GRATUIT</span></div>
+<p class="subtitle" style="margin-top:0.8rem;">Valable 24h — Profitez de vos derniers moments en Baie de Somme !</p>
+
+<div class="form-card">
+  <h2>Vos informations</h2>
+
+  <div class="mdp-box">
+    <label>🔑 Mot de passe</label>
+    <input type="password" id="mdp" placeholder="Entrez le mot de passe">
+    <p>Le mot de passe se trouve au dos du guide des partenaires.</p>
+  </div>
+  <p class="error-msg" id="error-mdp">❌ Mot de passe incorrect. Demandez-le à votre hébergeur.</p>
+
+  <div class="row">
+    <div class="field">
+      <label>Nom</label>
+      <input type="text" id="nom" placeholder="Dupont">
+    </div>
+    <div class="field">
+      <label>Prénom</label>
+      <input type="text" id="prenom" placeholder="Marie">
+    </div>
+  </div>
+  <div class="field">
+    <label>Nom du gîte / hébergement</label>
+    <input type="text" id="gite" placeholder="Le temps d'un instant">
+  </div>
+
+  <button class="btn-generate" onclick="genererTicket()">Générer mon E-Ticket Départ</button>
+</div>
+
+<div id="ticket-area">
+  <div class="ticket" id="ticket">
+    <div class="ticket-header">
+      <img src="https://i.ibb.co/kVvc3HVt/logo-Le-Pass-Dun-Instant.png" class="ticket-logo" alt="Logo">
+      <div class="ticket-title">Le pass d'un <span>instant</span></div>
+      <div class="ticket-etiquette">E-Ticket Départ</div>
+      <div><span class="ticket-badge-gratuit">🎁 GRATUIT</span></div>
+    </div>
+    <hr class="ticket-divider">
+    <div class="ticket-row"><span class="t-label">Nom :</span><span class="t-value" id="t-nom"></span></div>
+    <div class="ticket-row"><span class="t-label">Prénom :</span><span class="t-value" id="t-prenom"></span></div>
+    <div class="ticket-row"><span class="t-label">Hébergement :</span><span class="t-value" id="t-gite"></span></div>
+
+    <div class="ticket-dates-box">
+      <div class="dates-title">⏰ Validité — 24 heures</div>
+      <div class="dates-grid">
+        <div class="date-cell">
+          <div class="dc-label">Valable dès</div>
+          <div class="dc-value" id="t-debut"></div>
+        </div>
+        <div class="date-cell">
+          <div class="dc-label">Jusqu'au</div>
+          <div class="dc-value" id="t-fin"></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="ticket-divider">
+    <div class="ticket-qr-area">
+      <img src="https://i.ibb.co/CpbRPvyS/qrcode-Pass-d-un-instant-site.png" alt="QR Code partenaires" style="width:130px;height:130px;">
+      <p>Accédez à nos nombreux partenaires<br>en scannant ce QR code</p>
+    </div>
+    <div class="ticket-footer">
+      Ou rendez-vous sur notre site : <a href="https://lepassduninstant.fr" style="color:#C0392B;font-weight:700;text-decoration:none;">lepassduninstant.fr</a>
+    </div>
+  </div>
+
+  <button class="btn-download" id="btn-dl" onclick="telecharger()">⬇ Télécharger mon E-Ticket</button>
+</div>
+
+<script>
+var MOT_DE_PASSE = "moule";
+
+function formatDate(date) {
+  var d = String(date.getDate()).padStart(2, "0");
+  var m = String(date.getMonth() + 1).padStart(2, "0");
+  var y = date.getFullYear();
+  var h = String(date.getHours()).padStart(2, "0");
+  var min = String(date.getMinutes()).padStart(2, "0");
+  return d + "/" + m + "/" + y + " " + h + "h" + min;
+}
+
+function genererTicket() {
+  var mdp = document.getElementById("mdp").value.trim().toLowerCase();
+  var nom = document.getElementById("nom").value.trim();
+  var prenom = document.getElementById("prenom").value.trim();
+  var gite = document.getElementById("gite").value.trim();
+  var erreur = document.getElementById("error-mdp");
+
+  if (mdp !== MOT_DE_PASSE) {
+    erreur.style.display = "block";
+    return;
+  }
+  erreur.style.display = "none";
+
+  if (!nom || !prenom || !gite) {
+    alert("Veuillez remplir tous les champs.");
+    return;
+  }
+
+  document.getElementById("t-nom").textContent = nom.toUpperCase();
+  document.getElementById("t-prenom").textContent = prenom;
+  document.getElementById("t-gite").textContent = gite;
+  document.getElementById("t-debut").textContent = "sera defini au telechargement";
+  document.getElementById("t-fin").textContent = "24h apres le telechargement";
+
+  var area = document.getElementById("ticket-area");
+  area.style.display = "block";
+  area.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function telecharger() {
+  // Definir les dates au moment du telechargement
+  var now = new Date();
+  var expiry = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  document.getElementById("t-debut").textContent = formatDate(now);
+  document.getElementById("t-fin").textContent = formatDate(expiry);
+
+  var ticket = document.getElementById("ticket");
+  html2canvas(ticket, { scale: 2, backgroundColor: "#ffffff", useCORS: true }).then(function(canvas) {
+    var dataUrl = canvas.toDataURL("image/png");
+    var link = document.createElement("a");
+    link.download = "eticket-depart.png";
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Afficher image pour iPhone
+    var existing = document.getElementById("img-preview-area");
+    if (existing) existing.remove();
+    var div = document.createElement("div");
+    div.id = "img-preview-area";
+    div.style.cssText = "width:100%;max-width:380px;margin-top:1rem;text-align:center;";
+    var p = document.createElement("p");
+    p.style.cssText = "font-family:Lato,sans-serif;font-size:1rem;color:white;font-weight:900;margin-bottom:0.8rem;background:#C0392B;border-radius:10px;padding:1rem;line-height:1.5;";
+    p.textContent = "⚠️ IPHONE : appuyez LONGUEMENT sur l image ci-dessous pour l enregistrer dans vos photos !";
+    var img = document.createElement("img");
+    img.src = dataUrl;
+    img.style.cssText = "width:100%;border-radius:12px;border:1px solid #DDD0C0;margin-top:0.5rem;";
+    div.appendChild(p);
+    div.appendChild(img);
+    document.getElementById("ticket-area").appendChild(div);
+    div.scrollIntoView({ behavior: "smooth" });
+  });
+}
+</script>
+</body>
+</html>
