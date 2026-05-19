@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "fr.lepassduninstant.app",
-        "sha256_cert_fingerprints": ["BB:53:00:BC:6A:11:55:D4:7F:B7:F9:F8:5C:B1:85:2A:E3:89:F1:1A:6C:EC:4F:46:83:25:BF:8D:7D:68:B1:4A"]
-      }
-    }]
