@@ -1,0 +1,13 @@
+{
+  "name": "lepassduninstant",
+  "version": "1.0.0",
+  "description": "Le Pass d'un Instant",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo build"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}
