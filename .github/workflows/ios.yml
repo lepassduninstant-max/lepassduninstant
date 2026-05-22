@@ -50,7 +50,7 @@ jobs:
         security unlock-keychain -p "" build.keychain
         security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
-    - name: Build iOS
+   - name: Build iOS
       run: |
         cd ios/App
         xcodebuild -workspace App.xcworkspace \
@@ -61,7 +61,12 @@ jobs:
           CODE_SIGN_STYLE=Manual \
           PROVISIONING_PROFILE_SPECIFIER="LePassDunInstant_Distribution" \
           CODE_SIGN_IDENTITY="Apple Distribution" \
-          DEVELOPMENT_TEAM="YDVHWA9LU8"
+          DEVELOPMENT_TEAM="YDVHWA9LU8" \
+          -destination "generic/platform=iOS" \
+          OTHER_CODE_SIGN_FLAGS="--keychain build.keychain" \
+          PODS_CONFIGURATION_BUILD_DIR=$RUNNER_TEMP/pods-build \
+          CODE_SIGN_STYLE[sdk=iphoneos*]=Manual \
+          PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]="LePassDunInstant_Distribution"
 
     - name: Export IPA
       run: |
