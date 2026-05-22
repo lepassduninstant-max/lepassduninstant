@@ -33,13 +33,18 @@ jobs:
       env:
         CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
         PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       run: |
         echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.cer
+        echo "$PRIVATE_KEY" | base64 --decode > private.key
         echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+        openssl x509 -inform DER -in certificate.cer -out certificate.pem
+        openssl rsa -in private.key -out private.pem
+        openssl pkcs12 -export -out certificate.p12 -inkey private.pem -in certificate.pem -passout pass:""
         security create-keychain -p "" build.keychain
-        security import certificate.cer -k build.keychain -A
+        security import certificate.p12 -k build.keychain -P "" -A
         security list-keychains -s build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "" build.keychain
