@@ -84,9 +84,10 @@ jobs:
         APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
         APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
       run: |
-        echo "$APP_STORE_CONNECT_PRIVATE_KEY" > AuthKey.p8
+        mkdir -p ~/.appstoreconnect/private_keys
+        echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
         xcrun altool --upload-app \
-          --file $RUNNER_TEMP/export/*.ipa \
+          -f $RUNNER_TEMP/export/App.ipa \
+          -t ios \
           --apiKey $APP_STORE_CONNECT_KEY_ID \
-          --apiIssuer $APP_STORE_CONNECT_ISSUER_ID \
-          --apiPrivateKeyPath AuthKey.p8
+          --apiIssuer $APP_STORE_CONNECT_ISSUER_ID
