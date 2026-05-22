@@ -3,9 +3,14 @@
 <plist version="1.0">
 <dict>
   <key>method</key>
-  <string>app-store</string>
+  <string>app-store-connect</string>
   <key>teamID</key>
   <string>YDVHWA9LU8</string>
+  <key>provisioningProfiles</key>
+  <dict>
+    <key>fr.lepassduninstant.app</key>
+    <string>LePassDunInstant_Distribution</string>
+  </dict>
   <key>uploadBitcode</key>
   <false/>
   <key>uploadSymbols</key>
