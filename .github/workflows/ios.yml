@@ -1,4 +1,56 @@
-- name: Build iOS
+name: Build and Deploy iOS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install Capacitor
+      run: |
+        npm install -g @capacitor/cli
+        npm install @capacitor/core @capacitor/ios
+    
+    - name: Setup project
+      run: |
+        npx cap init "Le Pass d'un Instant" "fr.lepassduninstant.app" --web-dir www || true
+        mkdir -p www
+        curl -o www/index.html https://lepassduninstant-max.github.io/lepassduninstant/
+        npx cap add ios || true
+        npx cap sync ios
+
+    - name: Install certificates
+      env:
+        CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
+        PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      run: |
+        echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.cer
+        echo "$PRIVATE_KEY" | base64 --decode > private.key
+        echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+        openssl x509 -inform DER -in certificate.cer -out certificate.pem
+        openssl rsa -in private.key -out private.pem
+        openssl pkcs12 -export -out certificate.p12 -inkey private.pem -in certificate.pem -passout pass:"test"
+        security create-keychain -p "" build.keychain
+        security import certificate.p12 -k build.keychain -P "test" -A
+        security list-keychains -s build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+
+    - name: Build iOS
       run: |
         cd ios/App
         xcodebuild -workspace App.xcworkspace \
@@ -10,3 +62,23 @@
           PROVISIONING_PROFILE_SPECIFIER="LePassDunInstant_Distribution" \
           CODE_SIGN_IDENTITY="Apple Distribution" \
           DEVELOPMENT_TEAM="YDVHWA9LU8"
+
+    - name: Export IPA
+      run: |
+        xcodebuild -exportArchive \
+          -archivePath $RUNNER_TEMP/App.xcarchive \
+          -exportPath $RUNNER_TEMP/export \
+          -exportOptionsPlist ExportOptions.plist
+
+    - name: Upload to App Store Connect
+      env:
+        APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      run: |
+        echo "$APP_STORE_CONNECT_PRIVATE_KEY" > AuthKey.p8
+        xcrun altool --upload-app \
+          --file $RUNNER_TEMP/export/*.ipa \
+          --apiKey $APP_STORE_CONNECT_KEY_ID \
+          --apiIssuer $APP_STORE_CONNECT_ISSUER_ID \
+          --apiPrivateKeyPath AuthKey.p8
