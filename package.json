@@ -1,4 +1,4 @@
-{
+ {
   "name": "lepassduninstant",
   "version": "1.0.0",
   "description": "Le Pass d'un Instant",
@@ -11,3 +11,4 @@
     "@capacitor/ios": "^6.0.0"
   }
 }
+ 
