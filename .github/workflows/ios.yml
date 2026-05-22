@@ -15,9 +15,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-
-    - name: Check Xcode versions
-      run: ls /Applications/ | grep Xcode
     
     - name: Install Capacitor
       run: |
@@ -58,6 +55,9 @@ jobs:
         security default-keychain -s build.keychain
         security unlock-keychain -p "" build.keychain
         security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+
+    - name: Select Xcode 26
+      run: sudo xcode-select -s /Applications/Xcode_26.app
 
     - name: Build iOS
       run: |
