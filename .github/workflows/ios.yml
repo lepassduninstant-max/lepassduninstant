@@ -42,7 +42,7 @@ jobs:
         cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
         openssl x509 -inform DER -in certificate.cer -out certificate.pem
         openssl rsa -in private.key -out private.pem
-        openssl pkcs12 -legacy -export -out certificate.p12 -inkey private.pem -in certificate.pem -passout pass:"test"
+        openssl pkcs12 -export -out certificate.p12 -inkey private.pem -in certificate.pem -passout pass:"test"
         security create-keychain -p "" build.keychain
         security import certificate.p12 -k build.keychain -P "test" -A
         security list-keychains -s build.keychain
