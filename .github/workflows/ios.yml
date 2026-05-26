@@ -31,7 +31,7 @@ jobs:
 
     - name: Set app icon
       run: |
-        pip install pillow --break-system-packages
+        python3 -m pip install pillow --break-system-packages
         python3 set_icon.py
 
     - name: Disable iPad support
