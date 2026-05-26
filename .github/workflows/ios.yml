@@ -41,6 +41,12 @@ jobs:
         /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" ios/App/App/Info.plist
         /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 1" ios/App/App/Info.plist
 
+    - name: Set build number
+      run: |
+        BUILD_NUMBER=${{ github.run_number }}
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
+        echo "Build number: $BUILD_NUMBER"
+
     - name: Fix Pods signing
       run: |
         cd ios/App
