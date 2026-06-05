@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trouver un hébergement — Le Pass d'un Instant</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: transparent;
+    color: #3D2B1F;
+  }
+
+  .widget {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 8px;
+  }
+
+  .widget-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #3D2B1F;
+    margin-bottom: 6px;
+  }
+
+  .widget-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #7A5C44;
+    margin-bottom: 20px;
+  }
+
+  /* Filtres */
+  .filters {
+    background: #FAF6F1;
+    border: 1px solid #E0D5C5;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 540px) {
+    .filters { grid-template-columns: 1fr; }
+  }
+
+  .filter-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7A5C44;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .filter-group select,
+  .filter-group input[type="number"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #E0D5C5;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #3D2B1F;
+    background: white;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A5C44' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .filter-group input[type="number"] {
+    background-image: none;
+  }
+
+  .filter-group select:focus,
+  .filter-group input:focus {
+    outline: none;
+    border-color: #8B6340;
+  }
+
+  .btn-search {
+    grid-column: 1 / -1;
+    background: #3D2B1F;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-search:hover { background: #5a3e2b; }
+  .btn-search:active { transform: scale(0.98); }
+
+  /* Résultats */
+  .results-header {
+    font-size: 13px;
+    color: #7A5C44;
+    margin-bottom: 12px;
+    padding-left: 2px;
+  }
+
+  .results-header strong { color: #3D2B1F; }
+
+  /* Section conciergeries */
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #7A5C44;
+    margin: 16px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #E0D5C5;
+  }
+
+  /* Cartes hébergements */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .card {
+    background: white;
+    border: 1.5px solid #E0D5C5;
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(61,43,31,0.1);
+    border-color: #C4A882;
+  }
+
+  .card-type {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    display: inline-block;
+    width: fit-content;
+  }
+
+  .type-chambre { background: #FFF3E0; color: #E65100; }
+  .type-gite { background: #E8F5E9; color: #2E7D32; }
+  .type-insolite { background: #F3E5F5; color: #6A1B9A; }
+  .type-camping { background: #E3F2FD; color: #1565C0; }
+  .type-conciergerie { background: #FAF6F1; color: #8B6340; border: 1px solid #E0D5C5; }
+
+  .card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #3D2B1F;
+    line-height: 1.3;
+  }
+
+  .card-infos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 12px;
+    color: #7A5C44;
+  }
+
+  .card-info {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .card-link {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #3D2B1F;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s;
+    width: fit-content;
+  }
+
+  .card-link:hover { background: #5a3e2b; color: white; }
+
+  .card-link-outline {
+    background: transparent;
+    color: #3D2B1F;
+    border: 1.5px solid #3D2B1F;
+  }
+
+  .card-link-outline:hover { background: #FAF6F1; color: #3D2B1F; }
+
+  /* Conciergerie card spéciale */
+  .card-conciergerie {
+    border-color: #C4A882;
+    background: linear-gradient(135deg, #FAF6F1, #fff);
+  }
+
+  /* Animaux badge */
+  .badge-animaux {
+    background: #E8F5E9;
+    color: #2E7D32;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7A5C44;
+  }
+
+  .empty svg { margin-bottom: 12px; opacity: 0.4; }
+  .empty p { font-size: 15px; margin-bottom: 6px; font-weight: 600; color: #3D2B1F; }
+  .empty span { font-size: 13px; }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 30px;
+    color: #7A5C44;
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid #E0D5C5;
+    border-top-color: #8B6340;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <h2 class="widget-title">🏡 Trouver un hébergement</h2>
+  <p class="widget-subtitle">Filtrez parmi nos hébergements partenaires en Baie de Somme et Côte Picarde</p>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>📍 Secteur géographique</label>
+      <select id="f-secteur">
+        <option value="">Tous les secteurs</option>
+        <option>St-Valery/Somme alentours</option>
+        <option>Cayeux-sur-mer alentours</option>
+        <option>Le Crotoy alentours</option>
+        <option>Portes Baie de Somme</option>
+        <option>Ault alentours</option>
+        <option>Le Tréport</option>
+        <option>Mers-les-Bains</option>
+        <option>Eu</option>
+        <option>Hauteurs Eu/Mers/Tréport</option>
+        <option>Abbeville alentours</option>
+        <option>Le Marquenterre</option>
+        <option>Quend Plage</option>
+        <option>Fort-Mahon Plage</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>👥 Nombre de personnes</label>
+      <input type="number" id="f-personnes" min="1" max="30" placeholder="Ex : 4" />
+    </div>
+
+    <div class="filter-group">
+      <label>🏠 Type d'hébergement</label>
+      <select id="f-type">
+        <option value="">Tous les types</option>
+        <option>Chambre d'hôtes</option>
+        <option>Gîte</option>
+        <option>Hébergement Insolite</option>
+        <option>Camping</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>🐾 Animaux acceptés</label>
+      <select id="f-animaux">
+        <option value="">Peu importe</option>
+        <option value="oui">Oui — animaux bienvenus</option>
+        <option value="non">Non — sans animaux</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>🧖 Spa / Bien-être</label>
+      <select id="f-spa">
+        <option value="">Peu importe</option>
+        <option value="oui">Oui — avec Spa / Bien-être</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>♿ Accessibilité PMR</label>
+      <select id="f-pmr">
+        <option value="">Peu importe</option>
+        <option value="oui">Oui — accessible PMR</option>
+      </select>
+    </div>
+
+    <button class="btn-search" onclick="rechercher()">🔍 Rechercher</button>
+  </div>
+
+  <div id="resultats"></div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAyxBcBBypSrspnc_5RcLmhR2RuVwPa5ZQ",
+  authDomain: "pass-instant.firebaseapp.com",
+  projectId: "pass-instant",
+  storageBucket: "pass-instant.firebasestorage.app",
+  messagingSenderId: "234758483474",
+  appId: "1:234758483474:web:7d739963a99a7bd573f2cb"
+});
+const db = getFirestore(app);
+
+let allData = null;
+
+async function chargerDonnees() {
+  if (allData) return allData;
+  const snap = await getDocs(collection(db, 'hebergements'));
+  allData = [];
+  snap.forEach(d => allData.push({ id: d.id, ...d.data() }));
+  return allData;
+}
+
+function typeClass(type) {
+  if (!type) return 'type-gite';
+  const t = type.toLowerCase();
+  if (t.includes('chambre')) return 'type-chambre';
+  if (t.includes('insolite')) return 'type-insolite';
+  if (t.includes('camping')) return 'type-camping';
+  if (t.includes('conciergerie')) return 'type-conciergerie';
+  return 'type-gite';
+}
+
+function renderCard(h) {
+  const isConciergerie = h.type_collection === 'conciergerie';
+  const lien = h.siteWeb ? `<a href="${h.siteWeb}" target="_blank" class="card-link ${isConciergerie ? '' : 'card-link-outline'}">
+    ${isConciergerie ? '🔗 Voir leurs hébergements' : '🌐 Voir le site'}
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+  </a>` : '';
+
+  const capacite = !isConciergerie && h.capaciteMin ? `<span class="card-info">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    ${h.capaciteMin === h.capaciteMax ? h.capaciteMin + ' pers.' : h.capaciteMin + '–' + h.capaciteMax + ' pers.'}
+  </span>` : '';
+
+  const animaux = !isConciergerie && h.animaux ? `<span class="badge-animaux">🐾 Animaux ok</span>` : '';
+  const spaTag = !isConciergerie && h.spa ? `<span class="badge-animaux" style="background:#F3E5F5;color:#6A1B9A;">🧖 Spa</span>` : '';
+  const pmrTag = !isConciergerie && h.pmr ? `<span class="badge-animaux" style="background:#E3F2FD;color:#1565C0;">♿ PMR</span>` : '';
+
+  const tel = h.tel ? `<span class="card-info">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.16 6.16l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+    ${h.tel}
+  </span>` : '';
+
+  return `<div class="card ${isConciergerie ? 'card-conciergerie' : ''}">
+    <span class="card-type ${typeClass(isConciergerie ? 'conciergerie' : h.type)}">${isConciergerie ? '🏢 Conciergerie' : h.type || 'Hébergement'}</span>
+    <div class="card-name">${h.nom}</div>
+    <div class="card-infos">
+      ${capacite}
+      ${tel}
+      ${animaux}
+      ${spaTag}
+      ${pmrTag}
+    </div>
+    ${lien}
+  </div>`;
+}
+
+window.rechercher = async function() {
+  const el = document.getElementById('resultats');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Recherche en cours...</div>';
+
+  const secteur = document.getElementById('f-secteur').value;
+  const personnes = parseInt(document.getElementById('f-personnes').value) || 0;
+  const type = document.getElementById('f-type').value;
+  const animaux = document.getElementById('f-animaux').value;
+  const spa = document.getElementById('f-spa').value;
+  const pmr = document.getElementById('f-pmr').value;
+
+  const data = await chargerDonnees();
+
+  // Filtrer hébergements individuels
+  const hebergements = data.filter(h => {
+    if (h.type_collection !== 'hebergement') return false;
+    if (secteur && h.secteur !== secteur) return false;
+    if (personnes > 0 && (h.capaciteMax < personnes || h.capaciteMin > personnes)) return false;
+    if (type && h.type !== type) return false;
+    if (animaux === 'oui' && !h.animaux) return false;
+    if (animaux === 'non' && h.animaux) return false;
+    if (spa === 'oui' && !h.spa) return false;
+    if (pmr === 'oui' && !h.pmr) return false;
+    return true;
+  });
+
+  // Filtrer conciergeries — apparaissent si secteur correspond
+  // (pas de filtre capacité car elles gèrent plusieurs biens de tailles variées)
+  const conciergeries = data.filter(h => {
+    if (h.type_collection !== 'conciergerie') return false;
+    if (secteur && h.secteur !== secteur) return false;
+    if (animaux === 'oui' && !h.animaux) return false;
+    if (animaux === 'non' && h.animaux) return false;
+    return true;
+  });
+
+  const total = hebergements.length + conciergeries.length;
+
+  if (total === 0) {
+    el.innerHTML = `<div class="empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8B6340" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <p>Aucun hébergement trouvé</p>
+      <span>Essayez d'élargir vos critères de recherche</span>
+    </div>`;
+    return;
+  }
+
+  let html = `<div class="results-header">
+    <strong>${total} hébergement${total > 1 ? 's' : ''}</strong> trouvé${total > 1 ? 's' : ''}
+    ${secteur ? ' à <strong>' + secteur + '</strong>' : ''}
+    ${personnes > 0 ? ' pour <strong>' + personnes + ' personne' + (personnes > 1 ? 's' : '') + '</strong>' : ''}
+  </div>`;
+
+  if (hebergements.length > 0) {
+    if (conciergeries.length > 0) html += `<div class="section-label">Hébergements individuels (${hebergements.length})</div>`;
+    html += `<div class="cards">${hebergements.map(renderCard).join('')}</div>`;
+  }
+
+  if (conciergeries.length > 0) {
+    html += `<div class="section-label">Conciergeries partenaires (${conciergeries.length})</div>`;
+    html += `<p style="font-size:13px;color:#7A5C44;margin-bottom:10px;">Ces conciergeries gèrent plusieurs hébergements dans ce secteur${personnes > 0 ? ' — peuvent avoir des logements pour <strong>' + personnes + ' personne' + (personnes > 1 ? 's' : '') + '</strong>' : ''}. Visitez leur site pour les disponibilités.</p>`;
+    html += `<div class="cards">${conciergeries.map(renderCard).join('')}</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+// Lancer une recherche vide au démarrage pour tout afficher
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => window.rechercher(), 300);
+});
+</script>
+</body>
+</html>
