@@ -32,8 +32,8 @@ jobs:
     - name: Set app icon
       run: |
         python3 -m pip install pillow --break-system-packages
+        curl -o icon-1024.png https://raw.githubusercontent.com/lepassduninstant-max/lepassduninstant/main/icon-1024.png
         python3 set_icon.py
-
     - name: Fix iPad orientations
       run: |
         /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" ios/App/App/Info.plist || true
@@ -45,8 +45,8 @@ jobs:
 
     - name: Set build number
       run: |
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 12" ios/App/App/Info.plist
-        echo "Build number: 12"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 13" ios/App/App/Info.plist
+        echo "Build number: 13"
 
     - name: Fix Pods signing
       run: |
