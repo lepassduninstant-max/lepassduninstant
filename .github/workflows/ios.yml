@@ -45,8 +45,8 @@ jobs:
 
     - name: Set build number
       run: |
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 11" ios/App/App/Info.plist
-        echo "Build number: 11"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 12" ios/App/App/Info.plist
+        echo "Build number: 12"
 
     - name: Fix Pods signing
       run: |
