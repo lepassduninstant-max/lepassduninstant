@@ -34,7 +34,7 @@ jobs:
         python3 -m pip install pillow --break-system-packages
         curl -o icon-1024.png https://raw.githubusercontent.com/lepassduninstant-max/lepassduninstant/main/icon-1024.png
         python3 set_icon.py
-        cat > ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json << 'EOF'
+        cat > ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json << 'ICONEOF'
         {
           "images": [
             {"filename": "Icon-20@2x.png", "idiom": "iphone", "scale": "2x", "size": "20x20"},
@@ -45,27 +45,23 @@ jobs:
             {"filename": "Icon-40@3x.png", "idiom": "iphone", "scale": "3x", "size": "40x40"},
             {"filename": "Icon-60@2x.png", "idiom": "iphone", "scale": "2x", "size": "60x60"},
             {"filename": "Icon-60@3x.png", "idiom": "iphone", "scale": "3x", "size": "60x60"},
-            {"filename": "Icon-76.png", "idiom": "ipad", "scale": "1x", "size": "76x76"},
-            {"filename": "Icon-76@2x.png", "idiom": "ipad", "scale": "2x", "size": "76x76"},
-            {"filename": "Icon-83.5@2x.png", "idiom": "ipad", "scale": "2x", "size": "83.5x83.5"},
             {"filename": "Icon-1024.png", "idiom": "ios-marketing", "scale": "1x", "size": "1024x1024"}
           ],
           "info": {"author": "xcode", "version": 1}
         }
-        EOF
-    - name: Fix iPad orientations
+        ICONEOF
+
+    - name: Remove iPad support
       run: |
         /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" ios/App/App/Info.plist || true
-        /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad array" ios/App/App/Info.plist
-        /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:0 string UIInterfaceOrientationPortrait" ios/App/App/Info.plist
-        /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationPortraitUpsideDown" ios/App/App/Info.plist
-        /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:2 string UIInterfaceOrientationLandscapeLeft" ios/App/App/Info.plist
-        /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:3 string UIInterfaceOrientationLandscapeRight" ios/App/App/Info.plist
+        /usr/libexec/PlistBuddy -c "Delete :UIDeviceFamily" ios/App/App/Info.plist || true
+        /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" ios/App/App/Info.plist
+        /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 1" ios/App/App/Info.plist
 
     - name: Set build number
       run: |
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 14" ios/App/App/Info.plist
-        echo "Build number: 14"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 15" ios/App/App/Info.plist
+        echo "Build number: 15"
 
     - name: Fix Pods signing
       run: |
