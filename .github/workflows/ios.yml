@@ -53,15 +53,23 @@ jobs:
 
     - name: Remove iPad support
       run: |
+        # Supprimer toutes les orientations iPad
         /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" ios/App/App/Info.plist || true
+        # Forcer UIDeviceFamily à iPhone uniquement (1 = iPhone, 2 = iPad)
         /usr/libexec/PlistBuddy -c "Delete :UIDeviceFamily" ios/App/App/Info.plist || true
         /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" ios/App/App/Info.plist
         /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 1" ios/App/App/Info.plist
+        # Désactiver le multitasking iPad
+        /usr/libexec/PlistBuddy -c "Delete :UIRequiresFullScreen" ios/App/App/Info.plist || true
+        /usr/libexec/PlistBuddy -c "Add :UIRequiresFullScreen bool true" ios/App/App/Info.plist
+        # Vérification
+        echo "UIDeviceFamily:"
+        /usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" ios/App/App/Info.plist
 
     - name: Set build number
       run: |
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 15" ios/App/App/Info.plist
-        echo "Build number: 15"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 16" ios/App/App/Info.plist
+        echo "Build number: 16"
 
     - name: Fix Pods signing
       run: |
@@ -106,7 +114,8 @@ jobs:
           CODE_SIGN_IDENTITY="Apple Distribution" \
           DEVELOPMENT_TEAM="YDVHWA9LU8" \
           PROVISIONING_PROFILE_SPECIFIER="LePassDunInstant_Distribution" \
-          OTHER_CODE_SIGN_FLAGS="--keychain build.keychain"
+          OTHER_CODE_SIGN_FLAGS="--keychain build.keychain" \
+          TARGETED_DEVICE_FAMILY=1
 
     - name: Export IPA
       run: |
