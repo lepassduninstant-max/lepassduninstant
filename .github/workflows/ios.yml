@@ -29,6 +29,20 @@ jobs:
         npx cap add ios || true
         npx cap sync ios
 
+    - name: Force iPhone only in Capacitor config
+      run: |
+        cat > capacitor.config.json << 'CAPEOF'
+        {
+          "appId": "fr.lepassduninstant.app",
+          "appName": "Le Pass d'un Instant",
+          "webDir": "www",
+          "ios": {
+            "preferredContentMode": "mobile"
+          }
+        }
+        CAPEOF
+        npx cap sync ios
+
     - name: Set app icon
       run: |
         python3 -m pip install pillow --break-system-packages
@@ -53,23 +67,19 @@ jobs:
 
     - name: Remove iPad support
       run: |
-        # Supprimer toutes les orientations iPad
         /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" ios/App/App/Info.plist || true
-        # Forcer UIDeviceFamily à iPhone uniquement (1 = iPhone, 2 = iPad)
         /usr/libexec/PlistBuddy -c "Delete :UIDeviceFamily" ios/App/App/Info.plist || true
         /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" ios/App/App/Info.plist
         /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 1" ios/App/App/Info.plist
-        # Désactiver le multitasking iPad
         /usr/libexec/PlistBuddy -c "Delete :UIRequiresFullScreen" ios/App/App/Info.plist || true
         /usr/libexec/PlistBuddy -c "Add :UIRequiresFullScreen bool true" ios/App/App/Info.plist
-        # Vérification
-        echo "UIDeviceFamily:"
+        echo "UIDeviceFamily apres modification:"
         /usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" ios/App/App/Info.plist
 
     - name: Set build number
       run: |
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 16" ios/App/App/Info.plist
-        echo "Build number: 16"
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 17" ios/App/App/Info.plist
+        echo "Build number: 17"
 
     - name: Fix Pods signing
       run: |
