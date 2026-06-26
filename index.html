@@ -2945,8 +2945,8 @@ window.fermerLightbox = function() {
 </script>
 
 <div class="photo-lightbox" id="photo-lightbox" onclick="fermerLightbox()">
-  <button class="photo-lightbox-close" onclick="fermerLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="photo"/>
+  <button class="photo-lightbox-close" onclick="event.stopPropagation();fermerLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="photo" onclick="event.stopPropagation()"/>
 </div>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
