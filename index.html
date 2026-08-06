@@ -548,8 +548,7 @@ function openInChrome() {
       <input type="file" id="pub-photo-input" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)"/>
       <div id="photo-preview-wrap" style="display:none;margin-top:8px;position:relative;">
         <img id="photo-preview-img" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;"/>
-        <button onclick="supprimerPhoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.5);border:none;border-radius:50%;width:26px;height:26px;color:#fff;font-size:16px;cursor:pointer;line-height:1;">✕</button>
-      </div>
+    <button onclick="event.stopPropagation(); supprimerPhoto()" style="...">✕</button>      </div>
     </div>
     <div class="field"><label>Expire dans</label>
       <div class="dgrid">
